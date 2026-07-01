@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ระบบติดตามการแก้ไขปัญหาการบุกรุกที่ดิน-ป่าไม้ | จังหวัดหนองบัวลำภู</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+<style>
+:root{
+  --forest-900:#0f2c22;
+  --forest-800:#163a2c;
+  --forest-700:#1f5138;
+  --forest-500:#2f7a52;
+  --forest-300:#6cb98a;
+  --soil-700:#6b4a2b;
+  --soil-500:#a4713c;
+  --soil-300:#d9ab73;
+  --gold:#c9a227;
+  --gold-soft:#e9d489;
+  --paper:#f6f3ea;
+  --card:#ffffff;
+  --ink:#1c2420;
+  --ink-soft:#5b6a61;
+  --line:#e4ddc9;
+  --danger:#b5482f;
+  --ok:#2f7a52;
+  --warn:#c98a1c;
+  --radius:16px;
+  --shadow:0 10px 30px -12px rgba(15,44,34,.18);
+}
+*{box-sizing:border-box;}
+body{
+  margin:0;
+  font-family:'Sarabun',sans-serif;
+  background:
+    radial-gradient(1200px 600px at 100% -10%, rgba(201,162,39,.10), transparent 60%),
+    radial-gradient(1000px 500px at -10% 0%, rgba(47,122,82,.10), transparent 55%),
+    var(--paper);
+  color:var(--ink);
+}
+h1,h2,h3,.brand-title,.kpi-value{font-family:'Kanit',sans-serif;}
+
+/* ---------- header ---------- */
+header.top{
+  background:linear-gradient(120deg,var(--forest-900),var(--forest-700) 60%,var(--forest-500));
+  color:#fff;
+  padding:22px 28px;
+  position:relative;
+  overflow:hidden;
+}
+header.top::after{
+  content:"";
+  position:absolute;inset:0;
+  background:repeating-linear-gradient(115deg, rgba(255,255,255,.035) 0 2px, transparent 2px 40px);
+  pointer-events:none;
+}
+.top-inner{max-width:1400px;margin:0 auto;display:flex;align-items:center;gap:18px;flex-wrap:wrap;position:relative;z-index:1;}
+.logos{display:flex;gap:10px;align-items:center;flex-shrink:0;}
+.logos img{height:56px;width:56px;object-fit:contain;filter:drop-shadow(0 2px 6px rgba(0,0,0,.35));}
+.brand-title{font-size:22px;font-weight:600;margin:0;line-height:1.3;}
+.brand-sub{font-size:14px;color:var(--gold-soft);margin-top:2px;font-weight:400;}
+.top-meta{margin-left:auto;text-align:right;font-size:13px;color:#dfe8e1;}
+.top-meta .updated{color:var(--gold-soft);font-weight:600;}
+.badge-fy{display:inline-block;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);
+  border-radius:999px;padding:4px 14px;font-size:13px;margin-top:6px;}
+
+/* ---------- layout ---------- */
+main{max-width:1400px;margin:0 auto;padding:24px 28px 60px;}
+.section-title{display:flex;align-items:baseline;gap:10px;margin:34px 0 14px;}
+.section-title h2{font-size:19px;margin:0;font-weight:600;color:var(--forest-900);}
+.section-title .tag{font-size:12px;color:var(--soil-700);background:var(--soil-300);opacity:.55;
+  padding:2px 10px;border-radius:999px;font-family:'Sarabun';}
+
+/* ---------- filter bar ---------- */
+.filters{
+  display:flex;gap:12px;flex-wrap:wrap;align-items:center;
+  background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+  padding:14px 18px;box-shadow:var(--shadow);margin-top:18px;
+}
+.filters label{font-size:13px;color:var(--ink-soft);margin-right:6px;}
+.filters select{
+  font-family:'Sarabun';font-size:14px;padding:8px 12px;border-radius:10px;
+  border:1px solid var(--line);background:#fbfaf5;color:var(--ink);cursor:pointer;
+}
+.filters .spacer{flex:1;}
+.filters .reset{
+  background:var(--forest-700);color:#fff;border:none;padding:8px 16px;border-radius:10px;
+  font-family:'Sarabun';font-size:13px;cursor:pointer;
+}
+.filters .reset:hover{background:var(--forest-800);}
+
+/* ---------- KPI cards ---------- */
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:18px;}
+.kpi-card{
+  background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+  padding:18px 20px;box-shadow:var(--shadow);position:relative;overflow:hidden;
+}
+.kpi-card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--accent,var(--forest-500));}
+.kpi-label{font-size:13px;color:var(--ink-soft);margin-bottom:8px;}
+.kpi-value{font-size:32px;font-weight:600;color:var(--forest-900);}
+.kpi-value small{font-size:14px;font-weight:400;color:var(--ink-soft);}
+.kpi-trend{font-size:12px;margin-top:6px;color:var(--ink-soft);}
+.kpi-trend.up{color:var(--ok);}
+.kpi-trend.warn{color:var(--warn);}
+.kpi-trend.down{color:var(--danger);}
+
+/* ---------- grid panels ---------- */
+.grid-2{display:grid;grid-template-columns:1.15fr .85fr;gap:18px;margin-top:18px;}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:18px;}
+@media(max-width:1080px){.grid-2,.grid-3,.kpi-grid{grid-template-columns:1fr;}}
+
+.panel{
+  background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+  padding:18px 20px;box-shadow:var(--shadow);
+}
+.panel h3{margin:0 0 4px;font-size:15px;color:var(--forest-900);font-weight:600;}
+.panel .sub{font-size:12px;color:var(--ink-soft);margin-bottom:12px;}
+.chart-wrap{position:relative;height:280px;}
+.chart-wrap.tall{height:340px;}
+
+/* ---------- gauges ---------- */
+.gauge-row{display:flex;justify-content:space-around;gap:10px;flex-wrap:wrap;}
+.gauge-item{text-align:center;flex:1;min-width:170px;}
+.gauge-item svg{width:100%;max-width:220px;}
+.gauge-num{font-family:'Kanit';font-size:26px;font-weight:600;color:var(--forest-900);margin-top:-46px;}
+.gauge-cap{font-size:12px;color:var(--ink-soft);margin-top:2px;}
+
+/* ---------- map ---------- */
+#map{height:360px;border-radius:12px;overflow:hidden;border:1px solid var(--line);}
+.legend-row{display:flex;gap:14px;margin-top:10px;font-size:12px;color:var(--ink-soft);flex-wrap:wrap;}
+.legend-dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px;vertical-align:middle;}
+
+/* ---------- table ---------- */
+.table-wrap{overflow-x:auto;}
+table.data{width:100%;border-collapse:collapse;font-size:13.5px;}
+table.data th{
+  text-align:left;background:var(--forest-900);color:#fff;padding:10px 12px;
+  position:sticky;top:0;font-weight:500;white-space:nowrap;
+}
+table.data td{padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top;}
+table.data tr:nth-child(even){background:#fbfaf3;}
+.pill{display:inline-block;padding:3px 10px;border-radius:999px;font-size:12px;white-space:nowrap;}
+.pill-land{background:#f1e3cd;color:var(--soil-700);}
+.pill-forest{background:#dcefe2;color:var(--forest-700);}
+.status-pill{padding:3px 10px;border-radius:999px;font-size:12px;white-space:nowrap;}
+.st-ongoing{background:#fdf1d8;color:#8a6410;}
+.st-mediation{background:#e6effb;color:#2955a3;}
+.st-court{background:#fde3de;color:#a13c26;}
+.st-order{background:#efe1fb;color:#6a2fa1;}
+.st-done{background:#e0f3e5;color:#1f7a3d;}
+
+footer{
+  text-align:center;padding:26px;color:var(--ink-soft);font-size:12.5px;
+  border-top:1px solid var(--line);margin-top:40px;
+}
+footer a{color:var(--forest-700);}
+.admin-link{
+  position:fixed;right:18px;bottom:18px;background:var(--forest-900);color:#fff;
+  border-radius:999px;padding:10px 18px;font-size:13px;text-decoration:none;
+  box-shadow:var(--shadow);opacity:.85;
+}
+.admin-link:hover{opacity:1;}
+.empty-note{font-size:13px;color:var(--ink-soft);padding:20px;text-align:center;}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="top-inner">
+    <div class="logos">
+      <img src="ตราหนองบัวลำภู.png" alt="ตราจังหวัดหนองบัวลำภู" onerror="this.style.display='none'">
+      <img src="ปกครอง.png" alt="ตราฝ่ายปกครอง" onerror="this.style.display='none'">
+    </div>
+    <div>
+      <h1 class="brand-title">ระบบติดตามการแก้ไขปัญหาการบุกรุกที่ดินสาธารณประโยชน์<br>และการบุกรุกพื้นที่ป่าไม้ จังหวัดหนองบัวลำภู</h1>
+      <div class="brand-sub">Public Land &amp; Forest Encroachment Resolution Tracker</div>
+      <span class="badge-fy" id="fyBadge">ปีงบประมาณ พ.ศ. 2569</span>
+    </div>
+    <div class="top-meta">
+      <div>อัปเดตล่าสุด</div>
+      <div class="updated" id="lastUpdated">—</div>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <div class="filters">
+    <div><label>อำเภอ</label>
+      <select id="fDistrict"><option value="">ทั้งหมด</option></select>
+    </div>
+    <div><label>ประเภท</label>
+      <select id="fType">
+        <option value="">ทั้งหมด</option>
+        <option value="ที่ดินสาธารณประโยชน์">ที่ดินสาธารณประโยชน์</option>
+        <option value="พื้นที่ป่าไม้">พื้นที่ป่าไม้</option>
+      </select>
+    </div>
+    <div><label>สถานะ</label>
+      <select id="fStatus"><option value="">ทั้งหมด</option></select>
+    </div>
+    <div class="spacer"></div>
+    <button class="reset" onclick="resetFilters()">ล้างตัวกรอง</button>
+  </div>
+
+  <div class="kpi-grid" id="kpiGrid">
+    <div class="kpi-card" style="--accent:var(--forest-700)">
+      <div class="kpi-label">เรื่อง/คดีทั้งหมดที่ติดตาม</div>
+      <div class="kpi-value" id="kpiTotal">–</div>
+      <div class="kpi-trend" id="kpiTotalSub">ที่ดินสาธารณะ / ป่าไม้</div>
+    </div>
+    <div class="kpi-card" style="--accent:var(--gold)">
+      <div class="kpi-label">ดำเนินการต่อเรื่องร้องเรียนที่ดินสาธารณะ</div>
+      <div class="kpi-value" id="kpiComplaint">–<small>%</small></div>
+      <div class="kpi-trend" id="kpiComplaintSub">เป้าหมาย 100%</div>
+    </div>
+    <div class="kpi-card" style="--accent:var(--soil-500)">
+      <div class="kpi-label">คดีบุกรุกป่าที่จับกุม (ปีงบ 2569)</div>
+      <div class="kpi-value" id="kpiForestYear">–<small>คดี</small></div>
+      <div class="kpi-trend" id="kpiForestYearSub">เทียบปีก่อนหน้า</div>
+    </div>
+    <div class="kpi-card" style="--accent:var(--forest-500)">
+      <div class="kpi-label">ผลการลาดตระเวนสะสม</div>
+      <div class="kpi-value" id="kpiPatrol">–<small>ครั้ง</small></div>
+      <div class="kpi-trend" id="kpiPatrolSub">จากเป้าหมาย – ครั้ง</div>
+    </div>
+  </div>
+
+  <div class="section-title"><h2>เป้าหมายเทียบผลการดำเนินงาน</h2><span class="tag">4 เดือนสุดท้าย ปีงบ 2569</span></div>
+  <div class="grid-2">
+    <div class="panel">
+      <h3>เกจวัดความคืบหน้า</h3>
+      <div class="sub">เป้าหมายการดำเนินงาน 4 เดือนสุดท้ายของปีงบประมาณ (มิ.ย.–ก.ย. 2569)</div>
+      <div class="gauge-row">
+        <div class="gauge-item">
+          <svg viewBox="0 0 200 120" id="gaugePatrol"></svg>
+          <div class="gauge-num" id="gaugePatrolNum">0/20</div>
+          <div class="gauge-cap">ลาดตระเวนป้องกันป่าไม้ (ครั้ง)</div>
+        </div>
+        <div class="gauge-item">
+          <svg viewBox="0 0 200 120" id="gaugeCase"></svg>
+          <div class="gauge-num" id="gaugeCaseNum">0/15</div>
+          <div class="gauge-cap">สอบสวน/สรุปสำนวนคดีค้าง</div>
+        </div>
+        <div class="gauge-item">
+          <svg viewBox="0 0 200 120" id="gaugeComplaint"></svg>
+          <div class="gauge-num" id="gaugeComplaintNum">0%</div>
+          <div class="gauge-cap">ร้องเรียนที่ดินสาธารณะที่ดำเนินการแล้ว</div>
+        </div>
+      </div>
+    </div>
+    <div class="panel">
+      <h3>สถิติจับกุมคดีบุกรุกป่าไม้ รายปีงบประมาณ</h3>
+      <div class="sub">เปรียบเทียบย้อนหลัง</div>
+      <div class="chart-wrap"><canvas id="chartForestYear"></canvas></div>
+    </div>
+  </div>
+
+  <div class="section-title"><h2>ภาพรวมพื้นที่</h2><span class="tag">แผนที่ / รายอำเภอ</span></div>
+  <div class="grid-2">
+    <div class="panel">
+      <h3>แผนที่จุดเฝ้าระวังรายอำเภอ</h3>
+      <div class="sub">ขนาดวงกลม = จำนวนเรื่องที่ติดตาม · สี = ประเภทที่พบมากสุด</div>
+      <div id="map"></div>
+      <div class="legend-row">
+        <span><span class="legend-dot" style="background:var(--soil-500)"></span>ที่ดินสาธารณประโยชน์เด่น</span>
+        <span><span class="legend-dot" style="background:var(--forest-500)"></span>พื้นที่ป่าไม้เด่น</span>
+      </div>
+    </div>
+    <div class="panel">
+      <h3>จำนวนเรื่องแยกตามอำเภอและประเภท</h3>
+      <div class="sub">ที่ดินสาธารณประโยชน์ vs พื้นที่ป่าไม้</div>
+      <div class="chart-wrap tall"><canvas id="chartByDistrict"></canvas></div>
+    </div>
+  </div>
+
+  <div class="section-title"><h2>สถานะการดำเนินการ</h2></div>
+  <div class="grid-3">
+    <div class="panel">
+      <h3>สัดส่วนสถานะเรื่อง/คดี</h3>
+      <div class="chart-wrap"><canvas id="chartStatus"></canvas></div>
+    </div>
+    <div class="panel" style="grid-column:span 2;">
+      <h3>มาตรการหลักในการดำเนินงาน</h3>
+      <div class="sub">ตามแผนปฏิบัติการขับเคลื่อนการแก้ไขปัญหา จังหวัดหนองบัวลำภู</div>
+      <ol style="padding-left:18px;line-height:1.9;font-size:14px;color:var(--ink);">
+        <li><b>ป้องกันการบุกรุกทำลายพื้นที่ป่า</b> — ลาดตระเวน, ประชาสัมพันธ์กฎหมาย, เครือข่ายภาคประชาชน, ระบบพิทักษ์ไพร</li>
+        <li><b>เร่งรัดการดำเนินคดีให้มีประสิทธิภาพ</b> — ติดตามคดีรายเดือน, จัดทำบัญชีคดีค้าง, เร่งรัดการสอบสวน</li>
+        <li><b>จัดการปัญหาที่ดินสู่ขั้นตอนสุดท้าย</b> — เร่งรัดกระบวนการทางกฎหมาย, ติดตามสิทธิในที่ดิน, จัดทำฐานข้อมูล</li>
+      </ol>
+    </div>
+  </div>
+
+  <div class="section-title"><h2>รายการเรื่อง/คดีที่ติดตาม</h2><span class="tag" id="tableCount">0 รายการ</span></div>
+  <div class="panel">
+    <div class="table-wrap">
+      <table class="data">
+        <thead>
+          <tr>
+            <th>อำเภอ</th><th>ประเภท</th><th>เรื่อง</th><th>การดำเนินการ</th>
+            <th>สถานะ</th><th>หน่วยงานรับผิดชอบ</th><th>อัปเดตล่าสุด</th>
+          </tr>
+        </thead>
+        <tbody id="tblBody"></tbody>
+      </table>
+      <div class="empty-note" id="emptyNote" style="display:none;">ยังไม่มีข้อมูลตรงตามตัวกรอง</div>
+    </div>
+  </div>
+
+</main>
+
+<footer>
+  จัดทำโดย สำนักงานสถิติจังหวัดหนองบัวลำภู
+</footer>
+
+<script>
+/* ================= ตั้งค่า ================= */
+const API = 'ใส่_URL_เว็บแอป_ของคุณที่นี่/exec'; // <<< วาง URL .../exec จาก Apps Script
+
+const DISTRICT_COORDS = {
+  'เมืองหนองบัวลำภู': [17.2216, 102.4260],
+  'นากลาง':          [17.3536, 102.2183],
+  'โนนสัง':           [16.9922, 102.3153],
+  'ศรีบุญเรือง':       [17.0847, 102.2739],
+  'สุวรรณคูหา':        [17.4429, 102.1002],
+  'นาวัง':            [17.5167, 102.3167]
+};
+
+const STATUS_CLASS = {
+  'อยู่ระหว่างดำเนินการ':'st-ongoing',
+  'อยู่ระหว่างไกล่เกลี่ย':'st-mediation',
+  'ฟ้องร้อง/ดำเนินคดี':'st-court',
+  'ศาลสั่ง/รอบังคับคดี':'st-order',
+  'เสร็จสิ้น':'st-done'
+};
+
+let ALL_ROWS = [], ALL_FOREST = [], MAP, MAP_LAYER;
+let charts = {};
+
+function jsonp(params) {
+  return new Promise((resolve, reject) => {
+    const cb = 'cb_' + Math.random().toString(36).slice(2);
+    window[cb] = (data) => { resolve(data); delete window[cb]; script.remove(); };
+    const qs = Object.keys(params).map(k => k + '=' + encodeURIComponent(params[k])).join('&');
+    const script = document.createElement('script');
+    script.src = API + '?' + qs + '&callback=' + cb;
+    script.onerror = () => reject(new Error('network error'));
+    document.body.appendChild(script);
+  });
+}
+
+async function boot() {
+  initMap();
+  try {
+    const res = await jsonp({ action: 'init' });
+    if (!res.ok) throw new Error(res.error || 'load error');
+    ALL_ROWS = res.rows || [];
+    ALL_FOREST = res.forest || [];
+    populateFilterOptions(res.meta);
+    render();
+    document.getElementById('lastUpdated').textContent = new Date().toLocaleString('th-TH');
+  } catch (err) {
+    document.getElementById('emptyNote').style.display = 'block';
+    document.getElementById('emptyNote').textContent = 'ไม่สามารถโหลดข้อมูลได้ (ตรวจสอบ API URL ใน Code.gs / index.html): ' + err.message;
+  }
+}
+
+function populateFilterOptions(meta) {
+  const dSel = document.getElementById('fDistrict');
+  (meta.districts || []).forEach(d => dSel.insertAdjacentHTML('beforeend', `<option value="${d}">${d}</option>`));
+  const sSel = document.getElementById('fStatus');
+  (meta.statuses || []).forEach(s => sSel.insertAdjacentHTML('beforeend', `<option value="${s}">${s}</option>`));
+  ['fDistrict','fType','fStatus'].forEach(id => document.getElementById(id).addEventListener('change', render));
+}
+
+function resetFilters() {
+  ['fDistrict','fType','fStatus'].forEach(id => document.getElementById(id).value = '');
+  render();
+}
+
+function getFiltered() {
+  const d = document.getElementById('fDistrict').value;
+  const t = document.getElementById('fType').value;
+  const s = document.getElementById('fStatus').value;
+  return ALL_ROWS.filter(r => (!d || r.district === d) && (!t || r.type === t) && (!s || r.status === s));
+}
+
+function render() {
+  const rows = getFiltered();
+  renderKpis(rows);
+  renderGauges(rows);
+  renderTable(rows);
+  renderMap(rows);
+  renderCharts(rows);
+}
+
+/* ---------- KPI ---------- */
+function renderKpis(rows) {
+  document.getElementById('kpiTotal').textContent = rows.length;
+  const land = rows.filter(r => r.type === 'ที่ดินสาธารณประโยชน์').length;
+  const forest = rows.filter(r => r.type === 'พื้นที่ป่าไม้').length;
+  document.getElementById('kpiTotalSub').textContent = `ที่ดิน ${land} เรื่อง / ป่าไม้ ${forest} เรื่อง`;
+
+  const landRows = rows.filter(r => r.type === 'ที่ดินสาธารณประโยชน์');
+  const avgComplaint = landRows.length ? Math.round(landRows.reduce((a,r)=>a+r.resolvedPercent,0)/landRows.length) : 0;
+  document.getElementById('kpiComplaint').innerHTML = avgComplaint + '<small>%</small>';
+  document.getElementById('kpiComplaintSub').textContent = avgComplaint >= 100 ? 'บรรลุเป้าหมาย 100%' : `ห่างเป้าหมาย ${100-avgComplaint} จุด`;
+  document.getElementById('kpiComplaintSub').className = 'kpi-trend ' + (avgComplaint>=100?'up':'warn');
+
+  const curYearForest = ALL_FOREST.find(f => f.year === 2569);
+  const prevYearForest = ALL_FOREST.find(f => f.year === 2568);
+  document.getElementById('kpiForestYear').innerHTML = (curYearForest ? curYearForest.cases : 0) + '<small>คดี</small>';
+  if (curYearForest) {
+    const diff = curYearForest.cases - (prevYearForest ? prevYearForest.cases : 0);
+    document.getElementById('kpiForestYearSub').textContent = diff >= 0 ? `เพิ่มขึ้น ${diff} คดีจากปีก่อน` : `ลดลง ${Math.abs(diff)} คดีจากปีก่อน`;
+    document.getElementById('kpiForestYearSub').className = 'kpi-trend ' + (diff>0?'warn':'up');
+  }
+
+  const patrolActual = rows.reduce((a,r)=>a+r.patrolActual,0);
+  const patrolTarget = rows.reduce((a,r)=>a+r.patrolTarget,0);
+  document.getElementById('kpiPatrol').innerHTML = patrolActual + '<small>ครั้ง</small>';
+  document.getElementById('kpiPatrolSub').textContent = `จากเป้าหมาย ${patrolTarget} ครั้ง`;
+}
+
+/* ---------- gauges (semicircle needle) ---------- */
+function drawGauge(svgId, value, max, color) {
+  const svg = document.getElementById(svgId);
+  const pct = max > 0 ? Math.min(value / max, 1) : 0;
+  const angle = Math.PI * (1 - pct); // 180deg(left) -> 0deg(right)
+  const cx = 100, cy = 100, r = 80;
+  const x2 = cx + r * Math.cos(angle);
+  const y2 = cy - r * Math.sin(angle);
+
+  const arcBg = describeArc(cx, cy, r, 180, 0);
+  const arcVal = describeArc(cx, cy, r, 180, 180 - pct*180);
+
+  svg.innerHTML = `
+    <path d="${arcBg}" fill="none" stroke="#e7e0cc" stroke-width="14" stroke-linecap="round"/>
+    <path d="${arcVal}" fill="none" stroke="${color}" stroke-width="14" stroke-linecap="round"/>
+    <line x1="${cx}" y1="${cy}" x2="${x2}" y2="${y2}" stroke="#1c2420" stroke-width="3" stroke-linecap="round"/>
+    <circle cx="${cx}" cy="${cy}" r="6" fill="#1c2420"/>
+  `;
+}
+function polarToCartesian(cx, cy, r, angleDeg) {
+  const a = (angleDeg) * Math.PI / 180;
+  return { x: cx + r * Math.cos(a), y: cy - r * Math.sin(a) };
+}
+function describeArc(cx, cy, r, startDeg, endDeg) {
+  const start = polarToCartesian(cx, cy, r, startDeg);
+  const end = polarToCartesian(cx, cy, r, endDeg);
+  const largeArc = Math.abs(startDeg-endDeg) <= 180 ? 0 : 1;
+  const sweep = endDeg < startDeg ? 1 : 0;
+  return `M ${start.x} ${start.y} A ${r} ${r} 0 ${largeArc} ${sweep} ${end.x} ${end.y}`;
+}
+
+function renderGauges(rows) {
+  const patrolActual = rows.reduce((a,r)=>a+r.patrolActual,0);
+  const patrolTarget = rows.reduce((a,r)=>a+r.patrolTarget,0) || 20;
+  drawGauge('gaugePatrol', patrolActual, patrolTarget, 'var(--forest-500)'.includes('var')?'#2f7a52':'#2f7a52');
+  document.getElementById('gaugePatrolNum').textContent = `${patrolActual}/${patrolTarget}`;
+
+  const caseActual = rows.reduce((a,r)=>a + (r.status==='เสร็จสิ้น' ? r.caseBacklog : 0), 0);
+  const caseTarget = rows.reduce((a,r)=>a+r.caseBacklog,0) || 15;
+  drawGauge('gaugeCase', caseActual, caseTarget, '#a4713c');
+  document.getElementById('gaugeCaseNum').textContent = `${caseActual}/${caseTarget}`;
+
+  const landRows = rows.filter(r => r.type === 'ที่ดินสาธารณประโยชน์');
+  const avgComplaint = landRows.length ? Math.round(landRows.reduce((a,r)=>a+r.resolvedPercent,0)/landRows.length) : 0;
+  drawGauge('gaugeComplaint', avgComplaint, 100, '#c9a227');
+  document.getElementById('gaugeComplaintNum').textContent = avgComplaint + '%';
+}
+
+/* ---------- table ---------- */
+function renderTable(rows) {
+  const body = document.getElementById('tblBody');
+  document.getElementById('tableCount').textContent = rows.length + ' รายการ';
+  if (!rows.length) {
+    body.innerHTML = '';
+    document.getElementById('emptyNote').style.display = 'block';
+    return;
+  }
+  document.getElementById('emptyNote').style.display = 'none';
+  body.innerHTML = rows.map(r => `
+    <tr>
+      <td>${esc(r.district)}</td>
+      <td><span class="pill ${r.type==='พื้นที่ป่าไม้'?'pill-forest':'pill-land'}">${esc(r.type)}</span></td>
+      <td>${esc(r.caseTitle)}</td>
+      <td>${esc(r.actionTaken)}</td>
+      <td><span class="status-pill ${STATUS_CLASS[r.status]||''}">${esc(r.status)}</span></td>
+      <td>${esc(r.responsibleOrg)}</td>
+      <td>${fmtDate(r.updatedAt)}</td>
+    </tr>
+  `).join('');
+}
+function esc(s){ return (s===undefined||s===null)?'':String(s).replace(/[&<>]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
+function fmtDate(iso){ if(!iso) return '-'; const d=new Date(iso); return isNaN(d)?'-':d.toLocaleDateString('th-TH',{year:'numeric',month:'short',day:'numeric'}); }
+
+/* ---------- map ---------- */
+function initMap() {
+  MAP = L.map('map', { scrollWheelZoom:false }).setView([17.22, 102.28], 9);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution:'&copy; OpenStreetMap contributors', maxZoom:14
+  }).addTo(MAP);
+  MAP_LAYER = L.layerGroup().addTo(MAP);
+}
+function renderMap(rows) {
+  MAP_LAYER.clearLayers();
+  const byDistrict = {};
+  Object.keys(DISTRICT_COORDS).forEach(d => byDistrict[d] = { land:0, forest:0 });
+  rows.forEach(r => {
+    if (!byDistrict[r.district]) byDistrict[r.district] = { land:0, forest:0 };
+    if (r.type === 'พื้นที่ป่าไม้') byDistrict[r.district].forest++;
+    else byDistrict[r.district].land++;
+  });
+  Object.keys(byDistrict).forEach(d => {
+    const coords = DISTRICT_COORDS[d];
+    if (!coords) return;
+    const c = byDistrict[d];
+    const total = c.land + c.forest;
+    const color = c.forest > c.land ? '#2f7a52' : '#a4713c';
+    const radius = 8 + Math.min(total, 12) * 3.2;
+    L.circleMarker(coords, {
+      radius: radius, color: color, weight:2, fillColor: color, fillOpacity:.35
+    }).bindTooltip(`<b>${d}</b><br>ที่ดินสาธารณะ: ${c.land} เรื่อง<br>ป่าไม้: ${c.forest} เรื่อง`)
+      .addTo(MAP_LAYER);
+  });
+}
+
+/* ---------- charts ---------- */
+function destroyChart(id){ if (charts[id]) { charts[id].destroy(); delete charts[id]; } }
+
+function renderCharts(rows) {
+  renderByDistrictChart(rows);
+  renderStatusChart(rows);
+  renderForestYearChart();
+}
+
+function renderByDistrictChart(rows) {
+  destroyChart('byDistrict');
+  const districts = Object.keys(DISTRICT_COORDS);
+  const land = districts.map(d => rows.filter(r=>r.district===d && r.type==='ที่ดินสาธารณประโยชน์').length);
+  const forest = districts.map(d => rows.filter(r=>r.district===d && r.type==='พื้นที่ป่าไม้').length);
+  const ctx = document.getElementById('chartByDistrict');
+  charts.byDistrict = new Chart(ctx, {
+    type:'bar',
+    data:{ labels:districts, datasets:[
+      { label:'ที่ดินสาธารณประโยชน์', data:land, backgroundColor:'#a4713c', borderRadius:6, stack:'s' },
+      { label:'พื้นที่ป่าไม้', data:forest, backgroundColor:'#2f7a52', borderRadius:6, stack:'s' }
+    ]},
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{ position:'bottom', labels:{ font:{ family:'Sarabun' } } } },
+      scales:{ x:{ grid:{display:false}, ticks:{font:{family:'Sarabun',size:11}} },
+               y:{ beginAtZero:true, ticks:{stepSize:1,font:{family:'Sarabun'}} } }
+    }
+  });
+}
+
+function renderStatusChart(rows) {
+  destroyChart('status');
+  const order = ['อยู่ระหว่างดำเนินการ','อยู่ระหว่างไกล่เกลี่ย','ฟ้องร้อง/ดำเนินคดี','ศาลสั่ง/รอบังคับคดี','เสร็จสิ้น'];
+  const colors = ['#c98a1c','#2955a3','#a13c26','#6a2fa1','#1f7a3d'];
+  const counts = order.map(s => rows.filter(r=>r.status===s).length);
+  const ctx = document.getElementById('chartStatus');
+  charts.status = new Chart(ctx, {
+    type:'doughnut',
+    data:{ labels:order, datasets:[{ data:counts, backgroundColor:colors, borderWidth:2, borderColor:'#fff' }] },
+    options:{
+      responsive:true, maintainAspectRatio:false, cutout:'62%',
+      plugins:{ legend:{ position:'bottom', labels:{ font:{family:'Sarabun',size:11}, boxWidth:12 } } }
+    }
+  });
+}
+
+function renderForestYearChart() {
+  destroyChart('forestYear');
+  const years = ALL_FOREST.slice().sort((a,b)=>a.year-b.year);
+  const ctx = document.getElementById('chartForestYear');
+  charts.forestYear = new Chart(ctx, {
+    type:'bar',
+    data:{ labels: years.map(y=>'ปี '+y.year), datasets:[{
+      label:'คดีบุกรุกป่าที่จับกุม', data: years.map(y=>y.cases),
+      backgroundColor: years.map(y=> y.year===2569 ? '#c9a227' : '#6cb98a'), borderRadius:8
+    }]},
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false} },
+      scales:{ x:{grid:{display:false},ticks:{font:{family:'Sarabun'}}},
+               y:{beginAtZero:true,ticks:{stepSize:1,font:{family:'Sarabun'}}} }
+    }
+  });
+}
+
+boot();
+</script>
+</body>
+</html>
