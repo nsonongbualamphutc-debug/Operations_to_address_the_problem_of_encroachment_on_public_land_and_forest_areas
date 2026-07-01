@@ -19,7 +19,7 @@
  *    คัดลอก URL .../exec ไปวางในตัวแปร API ที่ index.html และ input.html
  **********************************************************************/
 
-const SHEET_ID = 'ใส่_SHEET_ID_ของคุณที่นี่'; // <<< เปลี่ยนเป็น ID ของ Google Sheet
+const SHEET_ID = '1qrQwJ_4reqbACVvMod5PoAvxTMsUkfDFztLVgwb0MQU'; // Sheet ของ O
 
 const SH_DATA          = 'EncroachmentData';
 const SH_FOREST_YEARLY = 'ForestArrestHistory';
