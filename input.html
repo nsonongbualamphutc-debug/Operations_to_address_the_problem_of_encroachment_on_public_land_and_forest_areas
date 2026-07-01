@@ -3,263 +3,252 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ระบบกรอกข้อมูล | บุกรุกที่ดิน-ป่าไม้ หนองบัวลำภู</title>
+<title>ระบบบริหารจัดการข้อมูล | บุกรุกที่ดิน-ป่าไม้ หนองบัวลำภู</title>
 <link rel="icon" href="favicon.png">
-<link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;500;600;700&family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Sarabun:wght@300;400;500;600;700&family=IBM+Plex+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
 :root{
-  --forest-900:#0f2c22; --forest-700:#1f5138; --forest-500:#2f7a52;
-  --soil-700:#6b4a2b; --soil-500:#a4713c; --gold:#c9a227;
-  --paper:#f6f3ea; --card:#fff; --ink:#1c2420; --ink-soft:#5b6a61; --line:#e4ddc9;
-  --danger:#b5482f; --radius:14px; --shadow:0 10px 30px -12px rgba(15,44,34,.18);
+  --f-950:#08201a;--f-900:#0d2b22;--f-800:#12392c;--f-700:#1a4f39;--f-600:#236b4b;--f-500:#2f8a5e;--f-300:#7cc79a;--f-100:#d7efe0;
+  --soil-500:#9a6a34;--soil-700:#5f3f22;--gold-600:#b8901c;--gold:#d4af37;--gold-200:#f0e0a3;
+  --danger:#c0492c;--danger-100:#f7e2db;--warn:#c98a1c;
+  --ink:#12211b;--ink-2:#4a5a51;--ink-3:#84938b;
+  --paper:#f4f1e8;--paper-2:#ece7d8;--card:#fff;--line:#e6dfcd;
+  --shadow-sm:0 2px 10px -4px rgba(8,32,26,.16);--shadow:0 18px 44px -22px rgba(8,32,26,.32);
+  --r:16px;
 }
-*{box-sizing:border-box;}
-body{margin:0;font-family:'Sarabun',sans-serif;background:var(--paper);color:var(--ink);}
-h1,h2,h3,button,.tab{font-family:'Kanit',sans-serif;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'IBM Plex Sans Thai','Sarabun',sans-serif;background:var(--paper);color:var(--ink);-webkit-font-smoothing:antialiased;}
+h1,h2,h3,button,.tab,.num{font-family:'Kanit',sans-serif;}
+.num{font-variant-numeric:tabular-nums;}
 
-/* ---- login ---- */
-#loginScreen{
-  min-height:100vh;display:flex;align-items:center;justify-content:center;flex-direction:column;
-  background:linear-gradient(135deg,var(--forest-900),var(--forest-700));
-}
-.login-card{
-  background:var(--card);border-radius:20px;padding:40px 36px;width:340px;text-align:center;
-  box-shadow:0 20px 60px rgba(0,0,0,.35);
-}
-.login-card h2{margin:0 0 6px;color:var(--forest-900);}
-.login-card p{color:var(--ink-soft);font-size:13px;margin-top:0;}
-.login-card input{
-  width:100%;padding:14px;font-size:22px;text-align:center;letter-spacing:8px;
-  border:1px solid var(--line);border-radius:10px;margin:16px 0;font-family:'Kanit';
-}
-.login-card button{
-  width:100%;padding:12px;background:var(--forest-700);color:#fff;border:none;
-  border-radius:10px;font-size:15px;cursor:pointer;
-}
-.login-card button:hover{background:var(--forest-900);}
-.login-err{color:var(--danger);font-size:13px;min-height:18px;margin-top:8px;}
+/* login */
+#login{min-height:100vh;display:grid;place-items:center;
+  background:linear-gradient(155deg,var(--f-950),var(--f-700) 120%);position:relative;overflow:hidden;}
+#login::before{content:"";position:absolute;inset:0;opacity:.5;
+  background:radial-gradient(500px 320px at 80% 15%,rgba(212,175,55,.2),transparent 60%),
+  repeating-linear-gradient(118deg,rgba(255,255,255,.03) 0 1px,transparent 1px 50px);}
+.login-card{position:relative;z-index:2;background:var(--card);border-radius:22px;padding:42px 38px;width:360px;text-align:center;box-shadow:0 30px 80px rgba(0,0,0,.4);}
+.login-seal{width:64px;height:64px;object-fit:contain;margin-bottom:12px;}
+.login-card h2{color:var(--f-900);font-size:20px;margin-bottom:4px;}
+.login-card p{color:var(--ink-2);font-size:13px;font-family:'Sarabun';margin-bottom:20px;line-height:1.5;}
+.login-card input{width:100%;padding:15px;font-size:24px;text-align:center;letter-spacing:10px;
+  border:1.5px solid var(--line);border-radius:12px;font-family:'Kanit';color:var(--f-900);}
+.login-card input:focus{outline:none;border-color:var(--f-500);}
+.login-card button{width:100%;padding:14px;margin-top:16px;background:var(--f-700);color:#fff;border:none;
+  border-radius:12px;font-size:15px;cursor:pointer;transition:background .2s;}
+.login-card button:hover{background:var(--f-900);}
+.login-err{color:var(--danger);font-size:13px;min-height:20px;margin-top:10px;font-family:'Sarabun';}
 
-/* ---- app shell ---- */
-#appScreen{display:none;}
-header{
-  background:linear-gradient(120deg,var(--forest-900),var(--forest-700));color:#fff;
-  padding:18px 26px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;
-}
-header h1{font-size:18px;margin:0;font-weight:600;}
-header .sub{font-size:12px;color:#cfe3d6;}
-header .logout{
-  margin-left:auto;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.3);
-  color:#fff;padding:7px 14px;border-radius:8px;font-size:12.5px;cursor:pointer;
-}
-nav.tabs{
-  display:flex;gap:6px;background:#fff;border-bottom:1px solid var(--line);
-  padding:0 26px;overflow-x:auto;
-}
-nav.tabs button{
-  padding:14px 16px;background:none;border:none;font-size:14px;color:var(--ink-soft);
-  cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap;
-}
-nav.tabs button.active{color:var(--forest-900);border-bottom-color:var(--gold);font-weight:600;}
-main{max-width:1200px;margin:0 auto;padding:22px 26px 60px;}
-.panel{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow);margin-bottom:20px;}
-.panel h3{margin:0 0 4px;color:var(--forest-900);}
-.panel .sub{font-size:12.5px;color:var(--ink-soft);margin-bottom:14px;}
+/* shell */
+#app{display:none;}
+header{background:linear-gradient(120deg,var(--f-950),var(--f-700));color:#fff;padding:18px clamp(16px,3vw,34px);
+  display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
+header img{height:44px;width:44px;object-fit:contain;}
+header h1{font-size:17px;font-weight:600;}
+header .sub{font-size:12px;color:#bcd6c8;font-family:'Sarabun';}
+header .out{margin-left:auto;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.24);
+  color:#fff;padding:8px 16px;border-radius:10px;font-size:13px;cursor:pointer;font-family:'Kanit';}
+header .out:hover{background:rgba(255,255,255,.2);}
+nav{display:flex;gap:4px;background:#fff;border-bottom:1px solid var(--line);padding:0 clamp(16px,3vw,34px);overflow-x:auto;}
+nav button{padding:15px 18px;background:none;border:none;font-size:14px;color:var(--ink-2);cursor:pointer;
+  border-bottom:3px solid transparent;white-space:nowrap;transition:color .2s;}
+nav button.active{color:var(--f-900);border-bottom-color:var(--gold);font-weight:600;}
+main{max-width:1240px;margin:0 auto;padding:24px clamp(16px,3vw,34px) 70px;}
+.pane{display:none;} .pane.active{display:block;}
 
-.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
-.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;}
-@media(max-width:800px){.grid2,.grid3{grid-template-columns:1fr;}}
-label{display:block;font-size:12.5px;color:var(--ink-soft);margin-bottom:4px;}
-input,select,textarea{
-  width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:8px;
-  font-family:'Sarabun';font-size:14px;background:#fbfaf5;
-}
-textarea{resize:vertical;min-height:56px;}
-.field{margin-bottom:12px;}
-.btn{
-  padding:10px 18px;border:none;border-radius:9px;font-size:14px;cursor:pointer;font-family:'Kanit';
-}
-.btn-primary{background:var(--forest-700);color:#fff;}
-.btn-primary:hover{background:var(--forest-900);}
-.btn-outline{background:#fff;border:1px solid var(--line);color:var(--ink);}
-.btn-outline:hover{background:#f2eee0;}
-.btn-danger{background:#fff;border:1px solid var(--danger);color:var(--danger);}
-.btn-danger:hover{background:#fbe9e5;}
-.btn-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px;}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:22px 24px;box-shadow:var(--shadow);margin-bottom:20px;}
+.card h3{color:var(--f-900);font-size:16px;margin-bottom:4px;}
+.card .sub{font-size:12.5px;color:var(--ink-2);font-family:'Sarabun';margin-bottom:16px;}
 
-table.list{width:100%;border-collapse:collapse;font-size:13px;}
-table.list th{background:var(--forest-900);color:#fff;text-align:left;padding:8px 10px;font-weight:500;}
-table.list td{padding:8px 10px;border-bottom:1px solid var(--line);}
-table.list tr:hover{background:#f2eee0;}
-.mini-btn{padding:5px 10px;font-size:12px;border-radius:6px;border:1px solid var(--line);background:#fff;cursor:pointer;margin-right:4px;}
-.mini-btn:hover{background:#f2eee0;}
-.toast{
-  position:fixed;bottom:20px;left:50%;transform:translateX(-50%);
-  background:var(--forest-900);color:#fff;padding:12px 22px;border-radius:10px;font-size:14px;
-  box-shadow:0 10px 30px rgba(0,0,0,.25); opacity:0; pointer-events:none; transition:opacity .25s;
-  z-index:50;
-}
-.toast.show{opacity:1;}
-.toast.error{background:var(--danger);}
-.badge-pdpa{
-  display:inline-block;background:#fbe9e5;color:var(--danger);font-size:11px;
-  padding:2px 8px;border-radius:6px;margin-left:8px;
-}
-.import-table{max-height:340px;overflow:auto;border:1px solid var(--line);border-radius:8px;}
-.dropzone{
-  border:2px dashed var(--line);border-radius:12px;padding:30px;text-align:center;color:var(--ink-soft);
-  cursor:pointer;background:#fbfaf5;
-}
-.dropzone.drag{border-color:var(--forest-500);background:#eef7f0;}
-.hint{font-size:12px;color:var(--ink-soft);margin-top:6px;}
-.tab-panel{display:none;}
-.tab-panel.active{display:block;}
+/* toolbar */
+.toolbar{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:16px;}
+.search{flex:1;min-width:220px;position:relative;}
+.search input{width:100%;padding:12px 14px 12px 42px;border:1px solid var(--line);border-radius:12px;
+  font-family:'Sarabun';font-size:14px;background:#fbfaf5;}
+.search input:focus{outline:none;border-color:var(--f-500);background:#fff;}
+.search::before{content:"🔍";position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:14px;opacity:.5;}
+.tb-btn{padding:11px 18px;border:none;border-radius:11px;font-size:13.5px;cursor:pointer;font-family:'Kanit';}
+.btn-primary{background:var(--f-700);color:#fff;} .btn-primary:hover{background:var(--f-900);}
+.btn-ghost{background:#fff;border:1px solid var(--line);color:var(--ink);} .btn-ghost:hover{background:var(--paper-2);}
+.btn-danger{background:#fff;border:1px solid var(--danger);color:var(--danger);} .btn-danger:hover{background:var(--danger-100);}
+
+/* table list (screenshot style) */
+.tbl-wrap{border:1px solid var(--line);border-radius:14px;overflow:hidden;}
+table.list{width:100%;border-collapse:collapse;font-size:13.5px;}
+table.list thead th{background:var(--paper-2);color:var(--f-900);text-align:left;padding:13px 14px;font-family:'Kanit';font-weight:600;font-size:13px;white-space:nowrap;}
+table.list tbody td{padding:13px 14px;border-top:1px solid var(--line);vertical-align:middle;font-family:'Sarabun';}
+table.list tbody tr{cursor:pointer;transition:background .15s;}
+table.list tbody tr:hover{background:var(--f-100);}
+.rownum{color:var(--ink-3);font-family:'Kanit';font-weight:600;}
+.type-pill{display:inline-block;padding:4px 11px;border-radius:999px;font-size:12px;white-space:nowrap;}
+.tp-land{background:#f1e6d2;color:var(--soil-700);} .tp-forest{background:#dcefe2;color:var(--f-700);}
+.st-pill{display:inline-block;padding:4px 12px;border-radius:999px;font-size:12px;white-space:nowrap;}
+.st-ongoing{background:#fdf1d8;color:#8a6410;} .st-mediation{background:#e2ecfb;color:#265fa3;}
+.st-court{background:#fbe2db;color:#a13c26;} .st-order{background:#efe1fb;color:#6a2fa1;} .st-done{background:#dcf1e2;color:#1f7a3d;}
+.row-actions{display:flex;gap:6px;justify-content:flex-end;}
+.mini{padding:6px 12px;font-size:12px;border-radius:8px;border:1px solid var(--line);background:#fff;cursor:pointer;font-family:'Kanit';color:var(--ink-2);}
+.mini:hover{background:var(--paper-2);color:var(--ink);}
+.mini.del:hover{background:var(--danger-100);color:var(--danger);border-color:var(--danger);}
+.empty{padding:40px;text-align:center;color:var(--ink-3);font-family:'Sarabun';font-size:14px;}
+.count-note{font-size:12.5px;color:var(--ink-2);font-family:'Sarabun';margin-top:12px;}
+
+/* drawer / modal */
+.overlay{position:fixed;inset:0;background:rgba(8,32,26,.55);backdrop-filter:blur(3px);z-index:80;
+  display:none;justify-content:flex-end;}
+.overlay.show{display:flex;}
+.drawer{width:min(560px,100%);height:100%;background:var(--paper);box-shadow:-30px 0 80px rgba(0,0,0,.3);
+  overflow-y:auto;animation:slideIn .32s cubic-bezier(.22,.61,.36,1);}
+@keyframes slideIn{from{transform:translateX(100%);}to{transform:none;}}
+.drawer-head{background:linear-gradient(120deg,var(--f-900),var(--f-600));color:#fff;padding:22px 26px;position:sticky;top:0;z-index:2;}
+.drawer-head .dh-eyebrow{font-size:12px;color:var(--gold-200);letter-spacing:1.5px;text-transform:uppercase;font-family:'Kanit';}
+.drawer-head h2{font-size:19px;margin-top:6px;font-weight:600;}
+.drawer-head .close{position:absolute;top:20px;right:22px;background:rgba(255,255,255,.15);border:none;color:#fff;
+  width:34px;height:34px;border-radius:10px;cursor:pointer;font-size:18px;}
+.drawer-head .close:hover{background:rgba(255,255,255,.28);}
+.drawer-body{padding:24px 26px;}
+.field{margin-bottom:15px;}
+.field label{display:block;font-size:12.5px;color:var(--ink-2);margin-bottom:5px;font-family:'Sarabun';font-weight:500;}
+.field input,.field select,.field textarea{width:100%;padding:11px 13px;border:1px solid var(--line);border-radius:10px;
+  font-family:'Sarabun';font-size:14px;background:#fff;}
+.field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--f-500);}
+.field textarea{resize:vertical;min-height:70px;}
+.field .sensitive-note{font-size:11px;color:var(--danger);margin-top:4px;font-family:'Sarabun';}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+@media(max-width:520px){.row2,.row3{grid-template-columns:1fr;}}
+.drawer-foot{position:sticky;bottom:0;background:var(--card);border-top:1px solid var(--line);
+  padding:16px 26px;display:flex;gap:10px;}
+.drawer-foot .btn-primary{flex:1;}
+.section-lbl{font-family:'Kanit';font-weight:600;font-size:13px;color:var(--f-700);margin:18px 0 10px;
+  padding-bottom:6px;border-bottom:2px solid var(--gold-200);}
+
+/* import / export */
+.dropzone{border:2px dashed var(--line);border-radius:14px;padding:36px;text-align:center;color:var(--ink-2);
+  cursor:pointer;background:#fbfaf5;font-family:'Sarabun';transition:.2s;}
+.dropzone:hover,.dropzone.drag{border-color:var(--f-500);background:var(--f-100);}
+.hint{font-size:12px;color:var(--ink-3);margin-top:8px;font-family:'Sarabun';}
+.preview{max-height:340px;overflow:auto;border:1px solid var(--line);border-radius:12px;margin-top:14px;}
+.btn-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;}
+.badge-pdpa{display:inline-block;background:var(--danger-100);color:var(--danger);font-size:11px;padding:3px 9px;border-radius:6px;margin-left:8px;font-family:'Sarabun';}
+
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(10px);background:var(--f-900);color:#fff;
+  padding:13px 24px;border-radius:12px;font-size:14px;font-family:'Sarabun';box-shadow:0 14px 40px rgba(0,0,0,.3);
+  opacity:0;pointer-events:none;transition:.28s;z-index:120;}
+.toast.show{opacity:1;transform:translateX(-50%);}
+.toast.err{background:var(--danger);}
 </style>
 </head>
 <body>
 
-<div id="loginScreen">
+<div id="login">
   <div class="login-card">
-    <h2>🔒 ระบบกรอกข้อมูล</h2>
-    <p>บุกรุกที่ดินสาธารณประโยชน์ &amp; พื้นที่ป่าไม้<br>จังหวัดหนองบัวลำภู</p>
-    <input type="password" id="pinInput" maxlength="6" inputmode="numeric" placeholder="••••••" autofocus>
-    <button class="btn-primary btn" onclick="doLogin()">เข้าสู่ระบบ</button>
+    <img class="login-seal" src="ตราหนองบัวลำภู.png" onerror="this.style.display='none'">
+    <h2>ระบบบริหารจัดการข้อมูล</h2>
+    <p>การแก้ไขปัญหาการบุกรุกที่ดินสาธารณประโยชน์<br>และพื้นที่ป่าไม้ จังหวัดหนองบัวลำภู</p>
+    <input type="password" id="pin" maxlength="6" inputmode="numeric" placeholder="••••••" autofocus>
+    <button onclick="login()">เข้าสู่ระบบ</button>
     <div class="login-err" id="loginErr"></div>
   </div>
 </div>
 
-<div id="appScreen">
+<div id="app">
   <header>
+    <img src="ตราหนองบัวลำภู.png" onerror="this.style.display='none'">
     <div>
-      <h1>ระบบกรอกข้อมูล — การแก้ไขปัญหาบุกรุกที่ดิน/ป่าไม้</h1>
-      <div class="sub">จังหวัดหนองบัวลำภู · เข้าสู่ระบบด้วยรหัสเจ้าหน้าที่</div>
+      <h1>ระบบบริหารจัดการข้อมูล — บุกรุกที่ดิน/ป่าไม้</h1>
+      <div class="sub">จังหวัดหนองบัวลำภู · สำหรับเจ้าหน้าที่</div>
     </div>
-    <button class="logout" onclick="logout()">ออกจากระบบ</button>
+    <button class="out" onclick="location.reload()">ออกจากระบบ</button>
   </header>
-
-  <nav class="tabs">
-    <button class="tab active" data-tab="entry" onclick="showTab('entry')">กรอก/แก้ไขข้อมูล</button>
-    <button class="tab" data-tab="import" onclick="showTab('import')">นำเข้าจาก Excel</button>
-    <button class="tab" data-tab="export" onclick="showTab('export')">ส่งออก Excel</button>
-    <button class="tab" data-tab="forest" onclick="showTab('forest')">สถิติจับกุมป่าไม้รายปี</button>
-    <button class="tab" data-tab="coord" onclick="showTab('coord')">ผู้ประสานงาน <span class="badge-pdpa">PDPA</span></button>
+  <nav>
+    <button class="tab active" data-p="list" onclick="tab('list')">รายการเรื่อง/คดี</button>
+    <button class="tab" data-p="import" onclick="tab('import')">นำเข้า Excel</button>
+    <button class="tab" data-p="export" onclick="tab('export')">ส่งออก Excel</button>
+    <button class="tab" data-p="forest" onclick="tab('forest')">สถิติจับกุมป่ารายปี</button>
+    <button class="tab" data-p="coord" onclick="tab('coord')">ผู้ประสานงาน<span class="badge-pdpa">PDPA</span></button>
   </nav>
 
   <main>
-
-    <!-- ============ TAB: ENTRY ============ -->
-    <div class="tab-panel active" id="tab-entry">
-      <div class="panel">
-        <h3 id="formTitle">เพิ่มรายการใหม่</h3>
-        <div class="sub">กรอกแล้วกด "บันทึก" — หากเลือกแก้ไขรายการเดิม ระบบจะอ่านค่าล่าสุดมาให้แก้ได้ทันที</div>
-        <form id="entryForm" onsubmit="return false;">
-          <input type="hidden" id="f_id">
-          <div class="grid3">
-            <div class="field"><label>ปีงบประมาณ (พ.ศ.)</label><input id="f_fiscalYear" type="number" value="2569"></div>
-            <div class="field"><label>อำเภอ</label>
-              <select id="f_district">
-                <option>เมืองหนองบัวลำภู</option><option>นากลาง</option><option>โนนสัง</option>
-                <option>ศรีบุญเรือง</option><option>สุวรรณคูหา</option><option>นาวัง</option>
-              </select>
-            </div>
-            <div class="field"><label>ประเภท</label>
-              <select id="f_type"><option>ที่ดินสาธารณประโยชน์</option><option>พื้นที่ป่าไม้</option></select>
-            </div>
-          </div>
-          <div class="field"><label>เรื่อง/รายละเอียด (ไม่ระบุชื่อบุคคล)</label><textarea id="f_caseTitle"></textarea></div>
-          <div class="field"><label>การดำเนินการ</label><textarea id="f_actionTaken"></textarea></div>
-          <div class="grid3">
-            <div class="field"><label>สถานะ</label>
-              <select id="f_status">
-                <option>อยู่ระหว่างดำเนินการ</option><option>อยู่ระหว่างไกล่เกลี่ย</option>
-                <option>ฟ้องร้อง/ดำเนินคดี</option><option>ศาลสั่ง/รอบังคับคดี</option><option>เสร็จสิ้น</option>
-              </select>
-            </div>
-            <div class="field"><label>หน่วยงานรับผิดชอบ</label><input id="f_responsibleOrg"></div>
-            <div class="field"><label>ผู้บันทึก</label><input id="f_user" placeholder="ชื่อ/หน่วยงานผู้กรอก"></div>
-          </div>
-          <div class="grid3">
-            <div class="field"><label>เป้าหมายลาดตระเวน (ครั้ง)</label><input id="f_patrolTarget" type="number" value="0"></div>
-            <div class="field"><label>ผลลาดตระเวนสะสม (ครั้ง)</label><input id="f_patrolActual" type="number" value="0"></div>
-            <div class="field"><label>คดีค้าง (คดี)</label><input id="f_caseBacklog" type="number" value="0"></div>
-          </div>
-          <div class="field" style="max-width:260px;"><label>ร้อยละดำเนินการ (เฉพาะที่ดินสาธารณะ)</label><input id="f_resolvedPercent" type="number" value="0"></div>
-          <div class="btn-row">
-            <button class="btn btn-primary" onclick="saveEntry()">💾 บันทึก</button>
-            <button class="btn btn-outline" onclick="resetForm()">เริ่มรายการใหม่</button>
-          </div>
-        </form>
-      </div>
-
-      <div class="panel">
-        <h3>รายการทั้งหมด (<span id="listCount">0</span>)</h3>
-        <div class="sub">คลิก "แก้ไข" เพื่ออ่านค่าล่าสุดมาแก้ในฟอร์มด้านบน</div>
-        <div style="overflow-x:auto;">
-        <table class="list">
-          <thead><tr><th>อำเภอ</th><th>ประเภท</th><th>เรื่อง</th><th>สถานะ</th><th>อัปเดต</th><th></th></tr></thead>
-          <tbody id="listBody"></tbody>
-        </table>
+    <!-- LIST -->
+    <div class="pane active" id="pane-list">
+      <div class="card">
+        <div class="toolbar">
+          <div class="search"><input id="q" placeholder="ค้นหา อำเภอ / เรื่อง / หน่วยงาน / สถานะ..." oninput="renderList()"></div>
+          <button class="tb-btn btn-primary" onclick="openDrawer()">+ เพิ่มรายการใหม่</button>
+          <button class="tb-btn btn-ghost" onclick="loadAll()">↻ รีเฟรช</button>
         </div>
+        <div class="tbl-wrap">
+          <table class="list">
+            <thead><tr>
+              <th style="width:44px">ที่</th><th>เรื่อง / รายละเอียด</th><th style="width:150px">อำเภอ</th>
+              <th style="width:160px">ประเภท</th><th style="width:150px">สถานะ</th><th style="width:130px">อัปเดต</th><th style="width:140px"></th>
+            </tr></thead>
+            <tbody id="listBody"></tbody>
+          </table>
+          <div class="empty" id="listEmpty" style="display:none">ยังไม่มีข้อมูล — กด "เพิ่มรายการใหม่" เพื่อเริ่ม</div>
+        </div>
+        <div class="count-note" id="countNote">0 รายการ</div>
       </div>
     </div>
 
-    <!-- ============ TAB: IMPORT ============ -->
-    <div class="tab-panel" id="tab-import">
-      <div class="panel">
+    <!-- IMPORT -->
+    <div class="pane" id="pane-import">
+      <div class="card">
         <h3>นำเข้าข้อมูลจากไฟล์ Excel</h3>
-        <div class="sub">ใช้แม่แบบ (Template) ที่ให้ไว้ — ถ้ามีคอลัมน์ id ตรงกับรายการเดิม ระบบจะอัปเดตทับ ถ้าไม่มีจะเพิ่มใหม่</div>
-        <div class="dropzone" id="dropzone" onclick="document.getElementById('fileInput').click()">
-          📤 คลิกเพื่อเลือกไฟล์ .xlsx หรือ .csv (หรือลากไฟล์มาวาง)
-          <input type="file" id="fileInput" accept=".xlsx,.xls,.csv" style="display:none;" onchange="handleFile(this.files[0])">
+        <div class="sub">มีคอลัมน์ <b>id</b> ตรงกับรายการเดิม = อัปเดตทับ · ไม่มี id = เพิ่มใหม่ | ใช้แม่แบบจากแท็บ "ส่งออก Excel"</div>
+        <div class="dropzone" id="dz" onclick="document.getElementById('file').click()">
+          📤 คลิกเลือกไฟล์ .xlsx / .csv หรือลากไฟล์มาวางที่นี่
+          <input type="file" id="file" accept=".xlsx,.xls,.csv" hidden onchange="readFile(this.files[0])">
+          <div class="hint">รองรับคอลัมน์: id, fiscalYear, district, type, caseTitle, actionTaken, status, patrolTarget, patrolActual, caseBacklog, resolvedPercent, responsibleOrg</div>
         </div>
-        <div class="hint">คอลัมน์ที่รองรับ: id(ไม่บังคับ), fiscalYear, district, type, caseTitle, actionTaken, status, patrolTarget, patrolActual, caseBacklog, resolvedPercent, responsibleOrg</div>
-        <div class="import-table" id="importPreview" style="margin-top:14px;display:none;"></div>
-        <div class="btn-row" id="importActions" style="display:none;">
-          <button class="btn btn-primary" onclick="confirmImport()">✅ นำเข้าทั้งหมด</button>
-          <button class="btn btn-outline" onclick="cancelImport()">ยกเลิก</button>
+        <div class="preview" id="preview" style="display:none"></div>
+        <div class="btn-row" id="importBtns" style="display:none">
+          <button class="tb-btn btn-primary" onclick="doImport()">✓ นำเข้าทั้งหมด</button>
+          <button class="tb-btn btn-ghost" onclick="cancelImport()">ยกเลิก</button>
         </div>
       </div>
     </div>
 
-    <!-- ============ TAB: EXPORT ============ -->
-    <div class="tab-panel" id="tab-export">
-      <div class="panel">
+    <!-- EXPORT -->
+    <div class="pane" id="pane-export">
+      <div class="card">
         <h3>ส่งออกข้อมูลเป็น Excel</h3>
-        <div class="sub">ดาวน์โหลดข้อมูลปัจจุบันทั้งหมด แก้ไขในเครื่อง แล้วนำกลับมานำเข้าใหม่ได้ที่แท็บ "นำเข้าจาก Excel"</div>
+        <div class="sub">ดาวน์โหลดข้อมูลปัจจุบันไปแก้ในเครื่อง แล้วนำกลับมานำเข้าใหม่ได้</div>
         <div class="btn-row">
-          <button class="btn btn-primary" onclick="exportCurrentData()">⬇️ ส่งออกข้อมูลปัจจุบัน (.xlsx)</button>
-          <button class="btn btn-outline" onclick="downloadTemplate()">📄 ดาวน์โหลดแม่แบบเปล่า (Template)</button>
+          <button class="tb-btn btn-primary" onclick="exportData()">⬇ ส่งออกข้อมูลปัจจุบัน (.xlsx)</button>
+          <button class="tb-btn btn-ghost" onclick="exportTemplate()">📄 ดาวน์โหลดแม่แบบเปล่า</button>
         </div>
       </div>
     </div>
 
-    <!-- ============ TAB: FOREST YEARLY ============ -->
-    <div class="tab-panel" id="tab-forest">
-      <div class="panel">
+    <!-- FOREST -->
+    <div class="pane" id="pane-forest">
+      <div class="card">
         <h3>สถิติจับกุมคดีบุกรุกป่าไม้ รายปีงบประมาณ</h3>
-        <div class="sub">ใช้สำหรับกราฟเปรียบเทียบย้อนหลังบนหน้าแดชบอร์ดสาธารณะ</div>
-        <table class="list" style="max-width:420px;">
-          <thead><tr><th>ปีงบประมาณ (พ.ศ.)</th><th>จำนวนคดี</th><th></th></tr></thead>
-          <tbody id="forestBody"></tbody>
-        </table>
-        <div class="grid3" style="max-width:520px;margin-top:16px;">
-          <div class="field"><label>ปีงบประมาณ</label><input id="fy_year" type="number" value="2570"></div>
+        <div class="sub">ใช้แสดงกราฟเปรียบเทียบย้อนหลังบนหน้าแดชบอร์ด</div>
+        <div class="tbl-wrap" style="max-width:440px">
+          <table class="list"><thead><tr><th>ปีงบประมาณ</th><th>จำนวนคดี</th><th></th></tr></thead>
+          <tbody id="forestBody"></tbody></table>
+        </div>
+        <div class="row3" style="max-width:540px;margin-top:16px">
+          <div class="field"><label>ปีงบประมาณ (พ.ศ.)</label><input id="fy_year" type="number" value="2570"></div>
           <div class="field"><label>จำนวนคดี</label><input id="fy_cases" type="number" value="0"></div>
-          <div class="field" style="align-self:end;"><button class="btn btn-primary" onclick="saveForestYear()">บันทึก/อัปเดต</button></div>
+          <div class="field" style="align-self:end"><button class="tb-btn btn-primary" style="width:100%" onclick="saveForest()">บันทึก</button></div>
         </div>
       </div>
     </div>
 
-    <!-- ============ TAB: COORDINATORS ============ -->
-    <div class="tab-panel" id="tab-coord">
-      <div class="panel">
-        <h3>ผู้ประสานการปฏิบัติ <span class="badge-pdpa">ข้อมูลนี้จะไม่แสดงบนหน้าแดชบอร์ดสาธารณะ</span></h3>
-        <div class="sub">ชื่อ-สกุล / ตำแหน่ง / หน่วยงาน / เบอร์โทรศัพท์ — เข้าถึงได้เฉพาะผู้มี PIN เท่านั้น</div>
-        <table class="list">
-          <thead><tr><th>ชื่อ-สกุล</th><th>ตำแหน่ง</th><th>หน่วยงาน</th><th>เบอร์โทร</th><th></th></tr></thead>
-          <tbody id="coordBody"></tbody>
-        </table>
-        <div class="grid2" style="margin-top:16px;">
+    <!-- COORDINATORS -->
+    <div class="pane" id="pane-coord">
+      <div class="card">
+        <h3>ผู้ประสานการปฏิบัติ<span class="badge-pdpa">ไม่แสดงบนหน้าสาธารณะ</span></h3>
+        <div class="sub">ชื่อ-สกุล / ตำแหน่ง / หน่วยงาน / เบอร์โทร — เข้าถึงเฉพาะผู้มี PIN</div>
+        <div class="tbl-wrap">
+          <table class="list"><thead><tr><th>ชื่อ-สกุล</th><th>ตำแหน่ง</th><th>หน่วยงาน</th><th>เบอร์โทร</th><th></th></tr></thead>
+          <tbody id="coordBody"></tbody></table>
+        </div>
+        <div class="row2" style="margin-top:16px">
           <div class="field"><label>ชื่อ-สกุล</label><input id="c_name"></div>
           <div class="field"><label>ตำแหน่ง</label><input id="c_position"></div>
           <div class="field"><label>หน่วยงาน</label><input id="c_org"></div>
@@ -267,269 +256,202 @@ table.list tr:hover{background:#f2eee0;}
         </div>
         <input type="hidden" id="c_id">
         <div class="btn-row">
-          <button class="btn btn-primary" onclick="saveCoordinator()">บันทึก</button>
-          <button class="btn btn-outline" onclick="resetCoordForm()">เริ่มรายการใหม่</button>
+          <button class="tb-btn btn-primary" onclick="saveCoord()">บันทึก</button>
+          <button class="tb-btn btn-ghost" onclick="resetCoord()">เริ่มใหม่</button>
         </div>
       </div>
     </div>
-
   </main>
+</div>
+
+<!-- DRAWER -->
+<div class="overlay" id="overlay" onclick="if(event.target===this)closeDrawer()">
+  <div class="drawer">
+    <div class="drawer-head">
+      <button class="close" onclick="closeDrawer()">✕</button>
+      <div class="dh-eyebrow" id="drawerEyebrow">รายละเอียดเรื่อง/คดี</div>
+      <h2 id="drawerTitle">เพิ่มรายการใหม่</h2>
+    </div>
+    <div class="drawer-body">
+      <input type="hidden" id="f_id">
+      <div class="section-lbl">ข้อมูลเรื่อง/คดี</div>
+      <div class="field">
+        <label>เรื่อง / รายละเอียด</label>
+        <textarea id="f_caseTitle" placeholder="ระบุรายละเอียดเรื่อง"></textarea>
+        <div class="sensitive-note">⚠ ข้อมูลอ่อนไหว — จะไม่ถูกแสดงบนหน้าแดชบอร์ดสาธารณะ</div>
+      </div>
+      <div class="field"><label>การดำเนินการ</label><textarea id="f_actionTaken" placeholder="สรุปการดำเนินการ"></textarea></div>
+      <div class="row3">
+        <div class="field"><label>ปีงบประมาณ</label><input id="f_fiscalYear" type="number" value="2569"></div>
+        <div class="field"><label>อำเภอ</label><select id="f_district">
+          <option>เมืองหนองบัวลำภู</option><option>นากลาง</option><option>โนนสัง</option>
+          <option>ศรีบุญเรือง</option><option>สุวรรณคูหา</option><option>นาวัง</option></select></div>
+        <div class="field"><label>ประเภท</label><select id="f_type">
+          <option>ที่ดินสาธารณประโยชน์</option><option>พื้นที่ป่าไม้</option></select></div>
+      </div>
+      <div class="row2">
+        <div class="field"><label>สถานะ</label><select id="f_status">
+          <option>อยู่ระหว่างดำเนินการ</option><option>อยู่ระหว่างไกล่เกลี่ย</option>
+          <option>ฟ้องร้อง/ดำเนินคดี</option><option>ศาลสั่ง/รอบังคับคดี</option><option>เสร็จสิ้น</option></select></div>
+        <div class="field"><label>หน่วยงานรับผิดชอบ</label><input id="f_responsibleOrg"></div>
+      </div>
+
+      <div class="section-lbl">ตัวชี้วัด</div>
+      <div class="row3">
+        <div class="field"><label>เป้าหมายลาดตระเวน (ครั้ง)</label><input id="f_patrolTarget" type="number" value="0"></div>
+        <div class="field"><label>ผลลาดตระเวน (ครั้ง)</label><input id="f_patrolActual" type="number" value="0"></div>
+        <div class="field"><label>คดีค้าง (คดี)</label><input id="f_caseBacklog" type="number" value="0"></div>
+      </div>
+      <div class="row2">
+        <div class="field"><label>ร้อยละดำเนินการ (ที่ดินสาธารณะ)</label><input id="f_resolvedPercent" type="number" value="0"></div>
+        <div class="field"><label>ผู้บันทึก</label><input id="f_user" placeholder="ชื่อ/หน่วยงาน"></div>
+      </div>
+    </div>
+    <div class="drawer-foot">
+      <button class="tb-btn btn-primary" onclick="saveEntry()">💾 บันทึก</button>
+      <button class="tb-btn btn-danger" id="delBtn" style="display:none" onclick="deleteFromDrawer()">ลบรายการนี้</button>
+    </div>
+  </div>
 </div>
 
 <div class="toast" id="toast"></div>
 
 <script>
-/* ================= ตั้งค่า ================= */
-const API = 'https://script.google.com/macros/s/AKfycbwI1oe6STZ3WJioluYeyIxlfB7ZNiPJcc64Jxzcts4DeFTHJVPod8vAlRlz-plSDd5v/exec';
+const API='https://script.google.com/macros/s/AKfycbwI1oe6STZ3WJioluYeyIxlfB7ZNiPJcc64Jxzcts4DeFTHJVPod8vAlRlz-plSDd5v/exec';
+let PIN='',ALL=[],IMPORT=[];
+const ST_CLASS={'อยู่ระหว่างดำเนินการ':'st-ongoing','อยู่ระหว่างไกล่เกลี่ย':'st-mediation','ฟ้องร้อง/ดำเนินคดี':'st-court','ศาลสั่ง/รอบังคับคดี':'st-order','เสร็จสิ้น':'st-done'};
 
-let PIN = '';
-let ALL_ROWS = [];
-let IMPORT_ROWS = [];
+function jsonp(p){return new Promise((res,rej)=>{const cb='cb_'+Math.random().toString(36).slice(2);
+  window[cb]=d=>{res(d);delete window[cb];s.remove();};
+  const qs=Object.keys(p).map(k=>k+'='+encodeURIComponent(p[k])).join('&');
+  const s=document.createElement('script');s.src=API+'?'+qs+'&callback='+cb;s.onerror=()=>rej(new Error('net'));document.body.appendChild(s);});}
 
-/* ---------- JSONP ---------- */
-function jsonp(params) {
-  return new Promise((resolve, reject) => {
-    const cb = 'cb_' + Math.random().toString(36).slice(2);
-    window[cb] = (data) => { resolve(data); delete window[cb]; script.remove(); };
-    const qs = Object.keys(params).map(k => k + '=' + encodeURIComponent(params[k])).join('&');
-    const script = document.createElement('script');
-    script.src = API + '?' + qs + '&callback=' + cb;
-    script.onerror = () => reject(new Error('network error'));
-    document.body.appendChild(script);
-  });
-}
+function login(){const pin=document.getElementById('pin').value.trim();if(!pin)return;PIN=pin;
+  document.getElementById('loginErr').textContent='กำลังตรวจสอบ...';
+  jsonp({action:'getCoordinators',pin}).then(r=>{if(r.ok){document.getElementById('login').style.display='none';
+    document.getElementById('app').style.display='block';loadAll();}
+    else document.getElementById('loginErr').textContent='PIN ไม่ถูกต้อง';})
+  .catch(()=>document.getElementById('loginErr').textContent='เชื่อมต่อไม่ได้ ตรวจสอบ API URL');}
+document.getElementById('pin').addEventListener('keydown',e=>{if(e.key==='Enter')login();});
 
-/* ---------- login ---------- */
-function doLogin() {
-  const pin = document.getElementById('pinInput').value.trim();
-  if (!pin) return;
-  PIN = pin;
-  document.getElementById('loginErr').textContent = 'กำลังตรวจสอบ...';
-  jsonp({ action:'getCoordinators', pin: pin }).then(res => {
-    if (res.ok) {
-      document.getElementById('loginScreen').style.display = 'none';
-      document.getElementById('appScreen').style.display = 'block';
-      loadAll();
-    } else {
-      document.getElementById('loginErr').textContent = 'PIN ไม่ถูกต้อง กรุณาลองใหม่';
-    }
-  }).catch(() => document.getElementById('loginErr').textContent = 'เชื่อมต่อไม่ได้ ตรวจสอบ API URL');
-}
-function logout() { location.reload(); }
+function tab(n){document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active',b.dataset.p===n));
+  document.querySelectorAll('.pane').forEach(p=>p.classList.toggle('active',p.id==='pane-'+n));}
+function toast(m,err){const t=document.getElementById('toast');t.textContent=m;t.className='toast show'+(err?' err':'');setTimeout(()=>t.classList.remove('show'),2600);}
 
-/* ---------- tabs ---------- */
-function showTab(name) {
-  document.querySelectorAll('.tab').forEach(b => b.classList.toggle('active', b.dataset.tab === name));
-  document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.id === 'tab-' + name));
-}
+async function loadAll(){const r=await jsonp({action:'init'});ALL=r.rows||[];renderList();renderForest(r.forest||[]);loadCoord();}
 
-/* ---------- toast ---------- */
-function toast(msg, isError) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.className = 'toast show' + (isError ? ' error' : '');
-  setTimeout(() => t.classList.remove('show'), 2600);
+/* ---- LIST ---- */
+function renderList(){
+  const q=(document.getElementById('q').value||'').toLowerCase().trim();
+  let rows=ALL;
+  if(q)rows=ALL.filter(r=>[r.caseTitle,r.district,r.responsibleOrg,r.status,r.type,r.actionTaken].join(' ').toLowerCase().includes(q));
+  document.getElementById('countNote').textContent=rows.length+' รายการ'+(q?` (กรองจาก ${ALL.length})`:'');
+  const b=document.getElementById('listBody');
+  document.getElementById('listEmpty').style.display=rows.length?'none':'block';
+  b.innerHTML=rows.map((r,i)=>`
+    <tr onclick="openDrawer(${r.id})">
+      <td class="rownum">${i+1}</td>
+      <td><div style="font-weight:600;color:var(--ink)">${esc(trim(r.caseTitle,70))||'—'}</div></td>
+      <td>${esc(r.district)}</td>
+      <td><span class="type-pill ${r.type==='พื้นที่ป่าไม้'?'tp-forest':'tp-land'}">${esc(r.type)}</span></td>
+      <td><span class="st-pill ${ST_CLASS[r.status]||''}">${esc(r.status)}</span></td>
+      <td style="color:var(--ink-2);font-size:12.5px">${fmtDate(r.updatedAt)}</td>
+      <td onclick="event.stopPropagation()"><div class="row-actions">
+        <button class="mini" onclick="openDrawer(${r.id})">แก้ไข</button>
+        <button class="mini del" onclick="delRow(${r.id})">ลบ</button>
+      </div></td>
+    </tr>`).join('');
 }
 
-/* ---------- load ---------- */
-async function loadAll() {
-  const res = await jsonp({ action:'init' });
-  ALL_ROWS = res.rows || [];
-  renderList();
-  renderForestTable(res.forest || []);
-  loadCoordinators();
+/* ---- DRAWER ---- */
+function openDrawer(id){
+  const ov=document.getElementById('overlay');
+  if(id){const r=ALL.find(x=>x.id===id);if(!r)return;
+    document.getElementById('drawerEyebrow').textContent='แก้ไข · รหัส #'+id;
+    document.getElementById('drawerTitle').textContent=trim(r.caseTitle,40)||'แก้ไขรายการ';
+    document.getElementById('delBtn').style.display='block';
+    set('f_id',r.id);set('f_caseTitle',r.caseTitle);set('f_actionTaken',r.actionTaken);
+    set('f_fiscalYear',r.fiscalYear);set('f_district',r.district);set('f_type',r.type);
+    set('f_status',r.status);set('f_responsibleOrg',r.responsibleOrg);
+    set('f_patrolTarget',r.patrolTarget);set('f_patrolActual',r.patrolActual);
+    set('f_caseBacklog',r.caseBacklog);set('f_resolvedPercent',r.resolvedPercent);set('f_user',r.updatedBy||'');
+  }else{
+    document.getElementById('drawerEyebrow').textContent='สร้างรายการใหม่';
+    document.getElementById('drawerTitle').textContent='เพิ่มรายการใหม่';
+    document.getElementById('delBtn').style.display='none';
+    ['f_id','f_caseTitle','f_actionTaken','f_responsibleOrg','f_user'].forEach(x=>set(x,''));
+    set('f_fiscalYear',2569);set('f_district','เมืองหนองบัวลำภู');set('f_type','ที่ดินสาธารณประโยชน์');
+    set('f_status','อยู่ระหว่างดำเนินการ');['f_patrolTarget','f_patrolActual','f_caseBacklog','f_resolvedPercent'].forEach(x=>set(x,0));
+  }
+  ov.classList.add('show');document.body.style.overflow='hidden';
 }
+function closeDrawer(){document.getElementById('overlay').classList.remove('show');document.body.style.overflow='';}
+function set(id,v){document.getElementById(id).value=(v===undefined||v===null)?'':v;}
+function get(id){return document.getElementById(id).value;}
 
-/* ================= ENTRY TAB ================= */
-function renderList() {
-  document.getElementById('listCount').textContent = ALL_ROWS.length;
-  document.getElementById('listBody').innerHTML = ALL_ROWS.map(r => `
-    <tr>
-      <td>${esc(r.district)}</td><td>${esc(r.type)}</td>
-      <td style="max-width:280px;">${esc(r.caseTitle)}</td>
-      <td>${esc(r.status)}</td>
-      <td>${fmtDate(r.updatedAt)}</td>
-      <td>
-        <button class="mini-btn" onclick="editRow(${r.id})">แก้ไข</button>
-        <button class="mini-btn" onclick="deleteRow(${r.id})">ลบ</button>
-      </td>
-    </tr>
-  `).join('');
+async function saveEntry(){
+  const p={action:'save',pin:PIN,id:get('f_id'),fiscalYear:get('f_fiscalYear'),district:get('f_district'),
+    type:get('f_type'),caseTitle:get('f_caseTitle'),actionTaken:get('f_actionTaken'),status:get('f_status'),
+    responsibleOrg:get('f_responsibleOrg'),patrolTarget:get('f_patrolTarget'),patrolActual:get('f_patrolActual'),
+    caseBacklog:get('f_caseBacklog'),resolvedPercent:get('f_resolvedPercent'),user:get('f_user')};
+  const r=await jsonp(p);
+  if(r.ok){toast('บันทึกสำเร็จ');closeDrawer();loadAll();}else toast(r.error||'บันทึกไม่สำเร็จ',true);
 }
-function editRow(id) {
-  const r = ALL_ROWS.find(x => x.id === id);
-  if (!r) return;
-  document.getElementById('formTitle').textContent = 'แก้ไขรายการ #' + id;
-  document.getElementById('f_id').value = r.id;
-  document.getElementById('f_fiscalYear').value = r.fiscalYear;
-  document.getElementById('f_district').value = r.district;
-  document.getElementById('f_type').value = r.type;
-  document.getElementById('f_caseTitle').value = r.caseTitle;
-  document.getElementById('f_actionTaken').value = r.actionTaken;
-  document.getElementById('f_status').value = r.status;
-  document.getElementById('f_responsibleOrg').value = r.responsibleOrg;
-  document.getElementById('f_patrolTarget').value = r.patrolTarget;
-  document.getElementById('f_patrolActual').value = r.patrolActual;
-  document.getElementById('f_caseBacklog').value = r.caseBacklog;
-  document.getElementById('f_resolvedPercent').value = r.resolvedPercent;
-  document.getElementById('f_user').value = r.updatedBy || '';
-  window.scrollTo({top:0, behavior:'smooth'});
-}
-function resetForm() {
-  document.getElementById('formTitle').textContent = 'เพิ่มรายการใหม่';
-  document.getElementById('entryForm').reset();
-  document.getElementById('f_id').value = '';
-  document.getElementById('f_fiscalYear').value = 2569;
-}
-async function saveEntry() {
-  const payload = {
-    action:'save', pin: PIN,
-    id: document.getElementById('f_id').value,
-    fiscalYear: document.getElementById('f_fiscalYear').value,
-    district: document.getElementById('f_district').value,
-    type: document.getElementById('f_type').value,
-    caseTitle: document.getElementById('f_caseTitle').value,
-    actionTaken: document.getElementById('f_actionTaken').value,
-    status: document.getElementById('f_status').value,
-    responsibleOrg: document.getElementById('f_responsibleOrg').value,
-    patrolTarget: document.getElementById('f_patrolTarget').value,
-    patrolActual: document.getElementById('f_patrolActual').value,
-    caseBacklog: document.getElementById('f_caseBacklog').value,
-    resolvedPercent: document.getElementById('f_resolvedPercent').value,
-    user: document.getElementById('f_user').value
-  };
-  const res = await jsonp(payload);
-  if (res.ok) { toast('บันทึกสำเร็จ'); resetForm(); loadAll(); }
-  else toast(res.error || 'บันทึกไม่สำเร็จ', true);
-}
-async function deleteRow(id) {
-  if (!confirm('ยืนยันการลบรายการนี้?')) return;
-  const res = await jsonp({ action:'deleteRow', pin: PIN, id: id });
-  if (res.ok) { toast('ลบสำเร็จ'); loadAll(); } else toast(res.error||'ลบไม่สำเร็จ', true);
-}
+async function deleteFromDrawer(){const id=get('f_id');if(!id)return;await delRow(id,true);closeDrawer();}
+async function delRow(id,skip){if(!skip&&!confirm('ยืนยันการลบรายการนี้?'))return;
+  const r=await jsonp({action:'deleteRow',pin:PIN,id});if(r.ok){toast('ลบสำเร็จ');loadAll();}else toast(r.error||'ลบไม่สำเร็จ',true);}
 
-/* ================= IMPORT TAB ================= */
-const dz = document.getElementById('dropzone');
-dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('drag'); });
-dz.addEventListener('dragleave', () => dz.classList.remove('drag'));
-dz.addEventListener('drop', e => { e.preventDefault(); dz.classList.remove('drag'); if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]); });
+/* ---- IMPORT ---- */
+const dz=document.getElementById('dz');
+dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('drag');});
+dz.addEventListener('dragleave',()=>dz.classList.remove('drag'));
+dz.addEventListener('drop',e=>{e.preventDefault();dz.classList.remove('drag');if(e.dataTransfer.files[0])readFile(e.dataTransfer.files[0]);});
+function readFile(f){if(!f)return;const rd=new FileReader();rd.onload=e=>{const wb=XLSX.read(e.target.result,{type:'binary'});
+  const ws=wb.Sheets[wb.SheetNames[0]];IMPORT=XLSX.utils.sheet_to_json(ws,{defval:''});showPreview(IMPORT);};rd.readAsBinaryString(f);}
+function showPreview(rows){if(!rows.length){toast('ไม่พบข้อมูลในไฟล์',true);return;}
+  const cols=Object.keys(rows[0]);
+  let h='<table class="list"><thead><tr>'+cols.map(c=>`<th>${esc(c)}</th>`).join('')+'</tr></thead><tbody>';
+  rows.slice(0,50).forEach(r=>h+='<tr>'+cols.map(c=>`<td>${esc(r[c])}</td>`).join('')+'</tr>');h+='</tbody></table>';
+  document.getElementById('preview').innerHTML=h;document.getElementById('preview').style.display='block';
+  document.getElementById('importBtns').style.display='flex';toast(`อ่านไฟล์สำเร็จ ${rows.length} แถว`);}
+async function doImport(){if(!IMPORT.length)return;
+  const r=await jsonp({action:'saveBatch',pin:PIN,user:'นำเข้าจาก Excel',rows:JSON.stringify(IMPORT)});
+  if(r.ok){toast(`นำเข้าสำเร็จ: เพิ่ม ${r.inserted}, อัปเดต ${r.updated}`);cancelImport();loadAll();tab('list');}else toast(r.error||'นำเข้าไม่สำเร็จ',true);}
+function cancelImport(){IMPORT=[];document.getElementById('preview').style.display='none';document.getElementById('importBtns').style.display='none';document.getElementById('file').value='';}
 
-function handleFile(file) {
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    const wb = XLSX.read(e.target.result, { type:'binary' });
-    const ws = wb.Sheets[wb.SheetNames[0]];
-    const json = XLSX.utils.sheet_to_json(ws, { defval:'' });
-    IMPORT_ROWS = json;
-    renderImportPreview(json);
-  };
-  reader.readAsBinaryString(file);
-}
-function renderImportPreview(rows) {
-  if (!rows.length) { toast('ไม่พบข้อมูลในไฟล์', true); return; }
-  const cols = Object.keys(rows[0]);
-  let html = '<table class="list"><thead><tr>' + cols.map(c=>`<th>${esc(c)}</th>`).join('') + '</tr></thead><tbody>';
-  rows.slice(0,50).forEach(r => {
-    html += '<tr>' + cols.map(c=>`<td>${esc(r[c])}</td>`).join('') + '</tr>';
-  });
-  html += '</tbody></table>';
-  document.getElementById('importPreview').innerHTML = html;
-  document.getElementById('importPreview').style.display = 'block';
-  document.getElementById('importActions').style.display = 'flex';
-  toast(`อ่านไฟล์สำเร็จ พบ ${rows.length} แถว (แสดงตัวอย่างสูงสุด 50 แถว)`);
-}
-async function confirmImport() {
-  if (!IMPORT_ROWS.length) return;
-  const res = await jsonp({ action:'saveBatch', pin: PIN, user:'นำเข้าจาก Excel', rows: JSON.stringify(IMPORT_ROWS) });
-  if (res.ok) { toast(`นำเข้าสำเร็จ: เพิ่มใหม่ ${res.inserted}, อัปเดต ${res.updated}`); cancelImport(); loadAll(); }
-  else toast(res.error || 'นำเข้าไม่สำเร็จ', true);
-}
-function cancelImport() {
-  IMPORT_ROWS = [];
-  document.getElementById('importPreview').style.display = 'none';
-  document.getElementById('importActions').style.display = 'none';
-  document.getElementById('fileInput').value = '';
-}
+/* ---- EXPORT ---- */
+function exportData(){const cols=['id','fiscalYear','district','type','caseTitle','actionTaken','status','patrolTarget','patrolActual','caseBacklog','resolvedPercent','responsibleOrg','updatedAt','updatedBy'];
+  const data=ALL.map(r=>{const o={};cols.forEach(c=>o[c]=r[c]);return o;});
+  const ws=XLSX.utils.json_to_sheet(data,{header:cols});const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,'EncroachmentData');
+  XLSX.writeFile(wb,`บุกรุกที่ดินป่าไม้_หนองบัวลำภู_${new Date().toISOString().slice(0,10)}.xlsx`);}
+function exportTemplate(){const cols=['id','fiscalYear','district','type','caseTitle','actionTaken','status','patrolTarget','patrolActual','caseBacklog','resolvedPercent','responsibleOrg'];
+  const ex=[{id:'',fiscalYear:2569,district:'เมืองหนองบัวลำภู',type:'ที่ดินสาธารณประโยชน์',caseTitle:'ตัวอย่าง: บุกรุกที่สาธารณะ ต.___ ม.__',actionTaken:'ตัวอย่าง: อยู่ระหว่างตรวจสอบ',status:'อยู่ระหว่างดำเนินการ',patrolTarget:0,patrolActual:0,caseBacklog:0,resolvedPercent:0,responsibleOrg:'อบต./เทศบาล ___'}];
+  const ws=XLSX.utils.json_to_sheet(ex,{header:cols});const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,'Template');XLSX.writeFile(wb,'แม่แบบนำเข้าข้อมูล.xlsx');}
 
-/* ================= EXPORT TAB ================= */
-function exportCurrentData() {
-  const cols = ['id','fiscalYear','district','type','caseTitle','actionTaken','status','patrolTarget','patrolActual','caseBacklog','resolvedPercent','responsibleOrg','updatedAt','updatedBy'];
-  const data = ALL_ROWS.map(r => { const o={}; cols.forEach(c=>o[c]=r[c]); return o; });
-  const ws = XLSX.utils.json_to_sheet(data, { header: cols });
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, 'EncroachmentData');
-  XLSX.writeFile(wb, `บุกรุกที่ดินป่าไม้_หนองบัวลำภู_${new Date().toISOString().slice(0,10)}.xlsx`);
-}
-function downloadTemplate() {
-  const cols = ['id','fiscalYear','district','type','caseTitle','actionTaken','status','patrolTarget','patrolActual','caseBacklog','resolvedPercent','responsibleOrg'];
-  const example = [{
-    id:'', fiscalYear:2569, district:'เมืองหนองบัวลำภู', type:'ที่ดินสาธารณประโยชน์',
-    caseTitle:'ตัวอย่าง: บุกรุกที่สาธารณะ ต.___ ม.__', actionTaken:'ตัวอย่าง: อยู่ระหว่างตรวจสอบ',
-    status:'อยู่ระหว่างดำเนินการ', patrolTarget:0, patrolActual:0, caseBacklog:0, resolvedPercent:0,
-    responsibleOrg:'อบต./เทศบาล ___'
-  }];
-  const ws = XLSX.utils.json_to_sheet(example, { header: cols });
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, 'Template');
-  XLSX.writeFile(wb, 'แม่แบบนำเข้าข้อมูล_บุกรุกที่ดินป่าไม้.xlsx');
-}
+/* ---- FOREST ---- */
+function renderForest(rows){document.getElementById('forestBody').innerHTML=rows.sort((a,b)=>a.year-b.year).map(r=>`
+  <tr><td class="rownum">${r.year}</td><td>${r.cases}</td>
+  <td><button class="mini" onclick="editForest(${r.year},${r.cases})">แก้ไข</button></td></tr>`).join('');}
+function editForest(y,c){set('fy_year',y);set('fy_cases',c);}
+async function saveForest(){const r=await jsonp({action:'saveForestYear',pin:PIN,year:get('fy_year'),cases:get('fy_cases')});
+  if(r.ok){toast('บันทึกสำเร็จ');loadAll();}else toast(r.error||'บันทึกไม่สำเร็จ',true);}
 
-/* ================= FOREST YEARLY TAB ================= */
-function renderForestTable(rows) {
-  document.getElementById('forestBody').innerHTML = rows.sort((a,b)=>a.year-b.year).map(r => `
-    <tr><td>${r.year}</td><td>${r.cases}</td>
-      <td><button class="mini-btn" onclick="editForestYear(${r.year},${r.cases})">แก้ไข</button></td></tr>
-  `).join('');
-}
-function editForestYear(year, cases) {
-  document.getElementById('fy_year').value = year;
-  document.getElementById('fy_cases').value = cases;
-}
-async function saveForestYear() {
-  const year = document.getElementById('fy_year').value;
-  const cases = document.getElementById('fy_cases').value;
-  const res = await jsonp({ action:'saveForestYear', pin: PIN, year: year, cases: cases });
-  if (res.ok) { toast('บันทึกสำเร็จ'); loadAll(); } else toast(res.error||'บันทึกไม่สำเร็จ', true);
-}
+/* ---- COORD ---- */
+async function loadCoord(){const r=await jsonp({action:'getCoordinators',pin:PIN});if(!r.ok)return;
+  document.getElementById('coordBody').innerHTML=(r.rows||[]).map(c=>`
+    <tr><td style="font-weight:600">${esc(c.name)}</td><td>${esc(c.position)}</td><td>${esc(c.org)}</td><td>${esc(c.phone)}</td>
+    <td><button class="mini" onclick='editCoord(${JSON.stringify(c)})'>แก้ไข</button></td></tr>`).join('');}
+function editCoord(c){set('c_id',c.id);set('c_name',c.name);set('c_position',c.position);set('c_org',c.org);set('c_phone',c.phone);tab('coord');}
+function resetCoord(){['c_id','c_name','c_position','c_org','c_phone'].forEach(x=>set(x,''));}
+async function saveCoord(){const r=await jsonp({action:'saveCoordinator',pin:PIN,id:get('c_id'),name:get('c_name'),position:get('c_position'),org:get('c_org'),phone:get('c_phone')});
+  if(r.ok){toast('บันทึกสำเร็จ');resetCoord();loadCoord();}else toast(r.error||'บันทึกไม่สำเร็จ',true);}
 
-/* ================= COORDINATORS TAB (PDPA) ================= */
-async function loadCoordinators() {
-  const res = await jsonp({ action:'getCoordinators', pin: PIN });
-  if (!res.ok) return;
-  document.getElementById('coordBody').innerHTML = (res.rows||[]).map(c => `
-    <tr><td>${esc(c.name)}</td><td>${esc(c.position)}</td><td>${esc(c.org)}</td><td>${esc(c.phone)}</td>
-    <td><button class="mini-btn" onclick='editCoord(${JSON.stringify(c)})'>แก้ไข</button></td></tr>
-  `).join('');
-}
-function editCoord(c) {
-  document.getElementById('c_id').value = c.id;
-  document.getElementById('c_name').value = c.name;
-  document.getElementById('c_position').value = c.position;
-  document.getElementById('c_org').value = c.org;
-  document.getElementById('c_phone').value = c.phone;
-}
-function resetCoordForm() {
-  ['c_id','c_name','c_position','c_org','c_phone'].forEach(id => document.getElementById(id).value = '');
-}
-async function saveCoordinator() {
-  const res = await jsonp({
-    action:'saveCoordinator', pin: PIN,
-    id: document.getElementById('c_id').value,
-    name: document.getElementById('c_name').value,
-    position: document.getElementById('c_position').value,
-    org: document.getElementById('c_org').value,
-    phone: document.getElementById('c_phone').value
-  });
-  if (res.ok) { toast('บันทึกสำเร็จ'); resetCoordForm(); loadCoordinators(); }
-  else toast(res.error||'บันทึกไม่สำเร็จ', true);
-}
-
-/* ---------- helpers ---------- */
-function esc(s){ return (s===undefined||s===null)?'':String(s).replace(/[&<>]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
-function fmtDate(iso){ if(!iso) return '-'; const d=new Date(iso); return isNaN(d)?'-':d.toLocaleDateString('th-TH',{year:'numeric',month:'short',day:'numeric'}); }
-
-document.getElementById('pinInput').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+/* ---- helpers ---- */
+function esc(s){return (s===undefined||s===null)?'':String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));}
+function trim(s,n){s=s||'';return s.length>n?s.slice(0,n)+'…':s;}
+function fmtDate(iso){if(!iso)return '-';const d=new Date(iso);return isNaN(d)?'-':d.toLocaleDateString('th-TH',{year:'numeric',month:'short',day:'numeric'});}
 </script>
 </body>
 </html>
