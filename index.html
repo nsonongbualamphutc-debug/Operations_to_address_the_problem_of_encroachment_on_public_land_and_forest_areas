@@ -5,7 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ศูนย์ติดตามการแก้ไขปัญหาการบุกรุกที่ดินสาธารณประโยชน์และพื้นที่ป่าไม้ จังหวัดหนองบัวลำภู</title>
 <link rel="manifest" href="manifest.json">
-<link rel="icon" href="favicon.png">
+<link rel="icon" type="image/x-icon" href="favicon.ico">
+<link rel="icon" type="image/png" sizes="48x48" href="favicon.png">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<meta name="theme-color" content="#0d2b22">
 <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@200;300;400;500;600;700&family=Sarabun:wght@300;400;500;600;700&family=IBM+Plex+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
@@ -62,6 +65,10 @@ h1,h2,h3,.num,.eyebrow{font-family:'Kanit',sans-serif;}
   text-decoration:none;color:var(--f-950);background:linear-gradient(120deg,var(--gold-200),var(--gold));
   padding:8px 16px;border-radius:999px;box-shadow:0 6px 18px -6px rgba(212,175,55,.7);transition:transform .16s;}
 .hero-entry:hover{transform:translateY(-1px);}
+.hero-print{display:inline-flex;align-items:center;gap:6px;font-family:'Kanit';font-size:13px;font-weight:500;
+  cursor:pointer;color:#fff;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.24);
+  padding:8px 15px;border-radius:999px;transition:background .16s;}
+.hero-print:hover{background:rgba(255,255,255,.2);}
 .live-dot{width:8px;height:8px;border-radius:50%;background:#5fe0a0;box-shadow:0 0 0 0 rgba(95,224,160,.6);animation:pulse 2s infinite;}
 @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(95,224,160,.55);}70%{box-shadow:0 0 0 10px rgba(95,224,160,0);}100%{box-shadow:0 0 0 0 rgba(95,224,160,0);}}
 
@@ -173,20 +180,40 @@ footer{text-align:center;padding:30px 20px;color:var(--ink-3);font-size:12.5px;f
 
 .reveal{opacity:0;transform:translateY(16px);transition:opacity .6s ease,transform .6s ease;}
 .reveal.in{opacity:1;transform:none;}
+
+/* ===== การพิมพ์ / บันทึก PDF สำหรับเสนอผู้บริหาร ===== */
+@media print{
+  @page{size:A4 portrait;margin:12mm;}
+  body{background:#fff !important;}
+  .hero{background:#0d2b22 !important;-webkit-print-color-adjust:exact;print-color-adjust:exact;padding:16px 20px;}
+  .hero::before{display:none;}
+  .hero-actions,.controls,#adminFab,#errBanner{display:none !important;}
+  .hero-stats{background:#0d2b22 !important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  main{padding:0;max-width:100%;}
+  .panel,.status-cell,.kpi-card{box-shadow:none !important;border:1px solid #ccc !important;break-inside:avoid;}
+  .reveal{opacity:1 !important;transform:none !important;}
+  .sec-head{break-after:avoid;}
+  .grid,.grid-2,.grid-3,.g-2-1,.g-1-1,.g-3{break-inside:avoid;}
+  #map{break-inside:avoid;}
+  .panel,canvas,svg{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  a[href]:after{content:"";}
+  footer{border:none;}
+}
 </style>
 </head>
 <body>
 
 <header class="hero">
   <div class="hero-topline">
-    <img class="seal" src="ตราหนองบัวลำภู.png" alt="ตราจังหวัดหนองบัวลำภู" onerror="this.style.display='none'">
-    <img class="seal" src="ปกครอง.png" alt="ตรากรมการปกครอง" onerror="this.style.display='none'">
+    <img class="seal" src="seal-province.png" alt="ตราจังหวัดหนองบัวลำภู" onerror="this.style.display='none'">
+    <img class="seal" src="seal-dopa.png" alt="ตรากรมการปกครอง" onerror="this.style.display='none'">
     <div class="hero-org">
       <b>จังหวัดหนองบัวลำภู</b> · ที่ทำการปกครองจังหวัด<br>
       Nong Bua Lam Phu Provincial Administration
     </div>
     <div class="hero-actions">
       <div class="hero-live"><span class="live-dot"></span> ข้อมูลล่าสุด <span id="liveTime">—</span></div>
+      <button class="hero-print" onclick="window.print()" title="พิมพ์ / บันทึกเป็น PDF">🖨️ พิมพ์รายงาน</button>
       <a class="hero-entry" href="input.html">🔐 กรอกข้อมูล</a>
     </div>
   </div>

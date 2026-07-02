@@ -4,7 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ระบบบริหารจัดการข้อมูล | บุกรุกที่ดิน-ป่าไม้ หนองบัวลำภู</title>
-<link rel="icon" href="favicon.png">
+<link rel="icon" type="image/x-icon" href="favicon.ico">
+<link rel="icon" type="image/png" sizes="48x48" href="favicon.png">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<meta name="theme-color" content="#0d2b22">
 <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Sarabun:wght@300;400;500;600;700&family=IBM+Plex+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
@@ -39,6 +42,8 @@ h1,h2,h3,button,.tab,.num{font-family:'Kanit',sans-serif;}
   border-radius:12px;font-size:15px;cursor:pointer;transition:background .2s;}
 .login-card button:hover{background:var(--f-900);}
 .login-err{color:var(--danger);font-size:13px;min-height:20px;margin-top:10px;font-family:'Sarabun';}
+.login-back{display:inline-block;margin-top:6px;color:var(--f-600);font-size:13px;text-decoration:none;font-family:'Sarabun';}
+.login-back:hover{text-decoration:underline;}
 
 /* shell */
 #app{display:none;}
@@ -47,9 +52,15 @@ header{background:linear-gradient(120deg,var(--f-950),var(--f-700));color:#fff;p
 header img{height:44px;width:44px;object-fit:contain;}
 header h1{font-size:17px;font-weight:600;}
 header .sub{font-size:12px;color:#bcd6c8;font-family:'Sarabun';}
-header .out{margin-left:auto;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.24);
+header .head-actions{margin-left:auto;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+header .out{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.24);
   color:#fff;padding:8px 16px;border-radius:10px;font-size:13px;cursor:pointer;font-family:'Kanit';}
 header .out:hover{background:rgba(255,255,255,.2);}
+header .back{display:inline-flex;align-items:center;gap:5px;text-decoration:none;color:var(--f-950);
+  background:linear-gradient(120deg,var(--gold-200),var(--gold));padding:8px 16px;border-radius:10px;
+  font-size:13px;font-family:'Kanit';font-weight:500;transition:transform .16s;}
+header .back:hover{transform:translateY(-1px);}
+@media(max-width:560px){header .back{font-size:12px;padding:8px 12px;}}
 nav{display:flex;gap:4px;background:#fff;border-bottom:1px solid var(--line);padding:0 clamp(16px,3vw,34px);overflow-x:auto;}
 nav button{padding:15px 18px;background:none;border:none;font-size:14px;color:var(--ink-2);cursor:pointer;
   border-bottom:3px solid transparent;white-space:nowrap;transition:color .2s;}
@@ -143,23 +154,27 @@ table.list tbody tr:hover{background:var(--f-100);}
 
 <div id="login">
   <div class="login-card">
-    <img class="login-seal" src="ตราหนองบัวลำภู.png" onerror="this.style.display='none'">
+    <img class="login-seal" src="seal-province.png" onerror="this.style.display='none'">
     <h2>ระบบบริหารจัดการข้อมูล</h2>
     <p>การแก้ไขปัญหาการบุกรุกที่ดินสาธารณประโยชน์<br>และพื้นที่ป่าไม้ จังหวัดหนองบัวลำภู</p>
     <input type="password" id="pin" maxlength="6" inputmode="numeric" placeholder="••••••" autofocus>
     <button onclick="login()">เข้าสู่ระบบ</button>
     <div class="login-err" id="loginErr"></div>
+    <a class="login-back" href="index.html">← กลับหน้าแดชบอร์ด</a>
   </div>
 </div>
 
 <div id="app">
   <header>
-    <img src="ตราหนองบัวลำภู.png" onerror="this.style.display='none'">
+    <img src="seal-province.png" onerror="this.style.display='none'">
     <div>
       <h1>ระบบบริหารจัดการข้อมูล — บุกรุกที่ดิน/ป่าไม้</h1>
       <div class="sub">จังหวัดหนองบัวลำภู · สำหรับเจ้าหน้าที่</div>
     </div>
-    <button class="out" onclick="location.reload()">ออกจากระบบ</button>
+    <div class="head-actions">
+      <a class="back" href="index.html">← กลับหน้าแดชบอร์ด</a>
+      <button class="out" onclick="location.reload()">ออกจากระบบ</button>
+    </div>
   </header>
   <nav>
     <button class="tab active" data-p="list" onclick="tab('list')">รายการเรื่อง/คดี</button>
