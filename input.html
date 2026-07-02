@@ -322,9 +322,11 @@ let PIN='',ALL=[],IMPORT=[];
 const ST_CLASS={'อยู่ระหว่างดำเนินการ':'st-ongoing','อยู่ระหว่างไกล่เกลี่ย':'st-mediation','ฟ้องร้อง/ดำเนินคดี':'st-court','ศาลสั่ง/รอบังคับคดี':'st-order','เสร็จสิ้น':'st-done'};
 
 function jsonp(p){return new Promise((res,rej)=>{const cb='cb_'+Math.random().toString(36).slice(2);
-  window[cb]=d=>{res(d);delete window[cb];s.remove();};
+  const timer=setTimeout(()=>{rej(new Error('timeout'));try{s.remove();}catch(_){}} ,12000);
+  window[cb]=d=>{clearTimeout(timer);res(d);delete window[cb];s.remove();};
   const qs=Object.keys(p).map(k=>k+'='+encodeURIComponent(p[k])).join('&');
-  const s=document.createElement('script');s.src=API+'?'+qs+'&callback='+cb;s.onerror=()=>rej(new Error('net'));document.body.appendChild(s);});}
+  const s=document.createElement('script');s.src=API+'?'+qs+'&callback='+cb;
+  s.onerror=()=>{clearTimeout(timer);rej(new Error('net'));};document.body.appendChild(s);});}
 
 function login(){const pin=document.getElementById('pin').value.trim();if(!pin)return;PIN=pin;
   document.getElementById('loginErr').textContent='กำลังตรวจสอบ...';
