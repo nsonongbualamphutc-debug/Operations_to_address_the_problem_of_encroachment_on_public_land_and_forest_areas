@@ -1,5 +1,5 @@
-const CACHE_NAME = 'nbl-encroachment-v2';
-const CORE = ['index.html', 'manifest.json', 'seal-province.png', 'seal-dopa.png'];
+const CACHE_NAME = 'nbl-encroachment-v3';
+const CORE = ['index.html', 'manifest.json', 'seal-province.png', 'seal-dopa.png', 'nbl_districts.geojson'];
 
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE_NAME).then(c => c.addAll(CORE)));

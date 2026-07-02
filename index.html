@@ -151,8 +151,35 @@ main{max-width:1360px;margin:0 auto;padding:8px clamp(14px,3vw,40px) 60px;}
   background:linear-gradient(90deg,var(--f-600),var(--f-300));}
 
 /* ===== map ===== */
-#map{height:390px;border-radius:14px;overflow:hidden;border:1px solid var(--line);}
-.map-legend{display:flex;gap:16px;flex-wrap:wrap;margin-top:12px;font-size:12px;color:var(--ink-2);font-family:'Sarabun';}
+#map{height:420px;border-radius:14px;overflow:hidden;border:1px solid var(--line);}
+.map-wrap{position:relative;}
+.map-detail{position:absolute;top:10px;right:10px;width:min(320px,72%);max-height:calc(100% - 20px);overflow-y:auto;
+  background:rgba(255,255,255,.97);backdrop-filter:blur(4px);border:1px solid var(--line);border-radius:14px;
+  box-shadow:0 18px 44px -18px rgba(8,32,26,.5);padding:14px 16px;z-index:500;
+  opacity:0;transform:translateX(10px);pointer-events:none;transition:opacity .22s,transform .22s;}
+.map-detail.show{opacity:1;transform:none;pointer-events:auto;}
+.md-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:10px;
+  padding-bottom:10px;border-bottom:1px solid var(--line);}
+.md-name{font-family:'Kanit';font-weight:600;font-size:16px;color:var(--f-900);}
+.md-sub{font-size:11.5px;color:var(--ink-2);font-family:'Sarabun';margin-top:2px;line-height:1.4;}
+.md-close{background:var(--paper-2);border:none;width:28px;height:28px;border-radius:8px;cursor:pointer;
+  font-size:14px;color:var(--ink-2);flex-shrink:0;}
+.md-close:hover{background:var(--line);}
+.md-list{display:flex;flex-direction:column;gap:9px;}
+.md-item{background:#fbfaf5;border:1px solid var(--line);border-radius:10px;padding:9px 11px;}
+.md-item-top{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:5px;}
+.md-org{font-size:12px;color:var(--ink-2);font-family:'Sarabun';}
+.md-metrics{display:flex;gap:5px;flex-wrap:wrap;margin-top:5px;}
+.md-chip{font-size:11px;font-family:'Sarabun';background:var(--f-100);color:var(--f-700);padding:2px 8px;border-radius:99px;}
+.md-empty{font-size:13px;color:var(--ink-3);font-family:'Sarabun';padding:16px 4px;text-align:center;}
+.md-note{font-size:10.5px;color:var(--ink-3);font-family:'Sarabun';margin-top:10px;line-height:1.4;}
+.type-pill{display:inline-block;padding:3px 10px;border-radius:999px;font-size:11.5px;font-family:'Sarabun';white-space:nowrap;}
+.tp-land{background:#f1e6d2;color:var(--soil-700);} .tp-forest{background:#dcefe2;color:var(--f-700);}
+.st-pill{display:inline-block;padding:3px 10px;border-radius:999px;font-size:11.5px;font-family:'Sarabun';white-space:nowrap;}
+.st-ongoing{background:#fdf1d8;color:#8a6410;} .st-mediation{background:#e2ecfb;color:#265fa3;}
+.st-court{background:#fbe2db;color:#a13c26;} .st-order{background:#efe1fb;color:#6a2fa1;} .st-done{background:#dcf1e2;color:#1f7a3d;}
+@media(max-width:560px){.map-detail{width:calc(100% - 20px);}}
+.map-legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:12px;font-size:12px;color:var(--ink-2);font-family:'Sarabun';}
 .dot{width:11px;height:11px;border-radius:50%;display:inline-block;margin-right:6px;vertical-align:middle;}
 
 .chart-box{position:relative;height:290px;}
@@ -307,14 +334,20 @@ footer{text-align:center;padding:30px 20px;color:var(--ink-3);font-size:12.5px;f
     <div class="panel reveal">
       <div class="panel-h">
         <div><h3>แผนที่สถานะการดำเนินการรายอำเภอ</h3>
-          <div class="desc">ขนาด = จำนวนเรื่องที่ติดตาม · สี = ระดับความคืบหน้า</div></div>
+          <div class="desc">ระบายสีตามระดับความคืบหน้า · ชี้เพื่อดูสรุป · คลิกอำเภอเพื่อดูรายละเอียดเรื่อง/คดี</div></div>
         <span class="tag">6 อำเภอ</span>
       </div>
-      <div id="map"></div>
+      <div class="map-wrap">
+        <div id="map"></div>
+        <div id="mapDetail" class="map-detail"></div>
+      </div>
       <div class="map-legend">
-        <span><span class="dot" style="background:#2f8a5e"></span>คืบหน้าดี (≥75%)</span>
-        <span><span class="dot" style="background:#d4af37"></span>ปานกลาง (40–74%)</span>
-        <span><span class="dot" style="background:#c0492c"></span>ต้องเร่งรัด (&lt;40%)</span>
+        <span><span class="dot" style="background:#1f7a3d"></span>≥75%</span>
+        <span><span class="dot" style="background:#4a9c63"></span>60–74%</span>
+        <span><span class="dot" style="background:#c9a227"></span>45–59%</span>
+        <span><span class="dot" style="background:#d98324"></span>30–44%</span>
+        <span><span class="dot" style="background:#c0492c"></span>&lt;30%</span>
+        <span><span class="dot" style="background:#e7e0cc"></span>ไม่มีข้อมูล</span>
       </div>
     </div>
     <div class="panel reveal">
@@ -407,6 +440,7 @@ const DISTRICT_COORDS = {
 };
 const STATUS_ORDER=['อยู่ระหว่างดำเนินการ','อยู่ระหว่างไกล่เกลี่ย','ฟ้องร้อง/ดำเนินคดี','ศาลสั่ง/รอบังคับคดี','เสร็จสิ้น'];
 const STATUS_COLOR={'อยู่ระหว่างดำเนินการ':'#c98a1c','อยู่ระหว่างไกล่เกลี่ย':'#2b6cb0','ฟ้องร้อง/ดำเนินคดี':'#c0492c','ศาลสั่ง/รอบังคับคดี':'#7a3fb0','เสร็จสิ้น':'#2f8a5e'};
+const STATUS_CLASS={'อยู่ระหว่างดำเนินการ':'st-ongoing','อยู่ระหว่างไกล่เกลี่ย':'st-mediation','ฟ้องร้อง/ดำเนินคดี':'st-court','ศาลสั่ง/รอบังคับคดี':'st-order','เสร็จสิ้น':'st-done'};
 // น้ำหนักความคืบหน้าตามสถานะ (ใช้คำนวณดัชนีรวม)
 const STATUS_WEIGHT={'อยู่ระหว่างดำเนินการ':25,'อยู่ระหว่างไกล่เกลี่ย':45,'ฟ้องร้อง/ดำเนินคดี':65,'ศาลสั่ง/รอบังคับคดี':85,'เสร็จสิ้น':100};
 
@@ -464,6 +498,7 @@ function render(){
   }
 }
 function safe(fn,name){try{fn();}catch(e){console.error('render '+name+' failed:',e);}}
+function esc(s){return (s===undefined||s===null)?'':String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));}
 
 /* ---- progress index ---- */
 function progIndex(rows){if(!rows.length)return 0;
@@ -549,20 +584,106 @@ function barColor(p){return p>=75?'linear-gradient(90deg,#1a4f39,#7cc79a)':p>=40
 function pinColor(p){return p>=75?'#2f8a5e':p>=40?'#d4af37':'#c0492c';}
 
 /* ---- map ---- */
-function initMap(){MAP=L.map('map',{scrollWheelZoom:false,attributionControl:false}).setView([17.25,102.28],9);
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{maxZoom:14}).addTo(MAP);
-  MLAYER=L.layerGroup().addTo(MAP);}
+let GEO=null, GEOLAYER=null, LABELS=null;
+function initMap(){
+  MAP=L.map('map',{scrollWheelZoom:false,attributionControl:false,zoomControl:true}).setView([17.22,102.28],9);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{maxZoom:14,opacity:.85}).addTo(MAP);
+  MLAYER=L.layerGroup().addTo(MAP);   // ป้ายชื่อ+%
+  LABELS=L.layerGroup().addTo(MAP);
+  // โหลดขอบเขตอำเภอ (GeoJSON) แล้ววาดเมื่อพร้อม
+  fetch('nbl_districts.geojson').then(r=>r.json()).then(gj=>{GEO=gj;drawMap(filtered());
+    try{MAP.fitBounds(L.geoJSON(gj).getBounds().pad(0.05));}catch(e){}
+  }).catch(e=>console.error('geojson load failed',e));
+}
+
+function districtStats(rows){
+  const map={};
+  Object.keys(DISTRICT_COORDS).forEach(d=>map[d]={n:0,w:0,land:0,forest:0,byStatus:{}});
+  rows.forEach(r=>{if(!map[r.district])map[r.district]={n:0,w:0,land:0,forest:0,byStatus:{}};
+    const m=map[r.district];m.n++;m.w+=STATUS_WEIGHT[r.status]||0;
+    if(r.type==='พื้นที่ป่าไม้')m.forest++;else m.land++;
+    m.byStatus[r.status]=(m.byStatus[r.status]||0)+1;});
+  Object.keys(map).forEach(d=>{map[d].pct=map[d].n?Math.round(map[d].w/map[d].n):0;});
+  return map;
+}
+
+function choroColor(pct,hasData){
+  if(!hasData)return '#e7e0cc';           // ไม่มีข้อมูล = เทา
+  if(pct>=75)return '#1f7a3d';
+  if(pct>=60)return '#4a9c63';
+  if(pct>=45)return '#c9a227';
+  if(pct>=30)return '#d98324';
+  return '#c0492c';                        // ต่ำ = แดง
+}
+
 function drawMap(rows){
-  if(!MLAYER)return;
-  MLAYER.clearLayers();
-  const map={};Object.keys(DISTRICT_COORDS).forEach(d=>map[d]={n:0,w:0,land:0,forest:0});
-  rows.forEach(r=>{if(!map[r.district])return;map[r.district].n++;map[r.district].w+=STATUS_WEIGHT[r.status]||0;
-    if(r.type==='พื้นที่ป่าไม้')map[r.district].forest++;else map[r.district].land++;});
-  Object.keys(map).forEach(d=>{const c=map[d];if(!c.n)return;const co=DISTRICT_COORDS[d];const pct=Math.round(c.w/c.n);
-    const col=pinColor(pct);const rad=10+Math.min(c.n,12)*3;
-    L.circleMarker(co,{radius:rad,color:col,weight:2.5,fillColor:col,fillOpacity:.28}).addTo(MLAYER);
-    L.marker(co,{icon:L.divIcon({className:'',html:`<div style="font:600 12px Kanit;color:#0d2b22;text-align:center;transform:translate(-50%,-50%);white-space:nowrap;text-shadow:0 1px 3px #fff,0 0 3px #fff">${d}<br><span style="color:${col};font-size:13px">${pct}%</span></div>`,iconSize:[0,0]})})
-      .bindTooltip(`<b>${d}</b><br>เรื่องที่ติดตาม: ${c.n}<br>ที่ดินสาธารณะ ${c.land} · ป่าไม้ ${c.forest}<br>ความคืบหน้า ${pct}%`).addTo(MLAYER);});
+  if(!MAP||!GEO)return;
+  const stats=districtStats(rows);
+  if(GEOLAYER){MAP.removeLayer(GEOLAYER);}
+  LABELS.clearLayers();
+
+  GEOLAYER=L.geoJSON(GEO,{
+    style:function(f){
+      const d=f.properties.amp_th;const s=stats[d]||{n:0,pct:0};
+      return {fillColor:choroColor(s.pct,s.n>0),fillOpacity:.82,color:'#ffffff',weight:1.6};
+    },
+    onEachFeature:function(f,layer){
+      const d=f.properties.amp_th;const s=stats[d]||{n:0,pct:0,land:0,forest:0};
+      layer.bindTooltip(
+        `<div style="font:600 13px Kanit;color:#0d2b22">${d}</div>`+
+        `<div style="font:12px Sarabun;color:#333">เรื่องที่ติดตาม: <b>${s.n}</b></div>`+
+        `<div style="font:12px Sarabun;color:#333">ที่ดินสาธารณะ ${s.land} · ป่าไม้ ${s.forest}</div>`+
+        `<div style="font:12px Sarabun;color:#333">ความคืบหน้า: <b>${s.pct}%</b></div>`+
+        `<div style="font:11px Sarabun;color:#888;margin-top:3px">คลิกเพื่อดูรายละเอียด</div>`,
+        {sticky:true});
+      layer.on({
+        mouseover:e=>{e.target.setStyle({weight:3,color:'#0d2b22',fillOpacity:.92});e.target.bringToFront();},
+        mouseout:e=>{GEOLAYER.resetStyle(e.target);},
+        click:e=>{openDistrictDetail(d,rows);}
+      });
+      // ป้ายชื่อ+% กลางอำเภอ
+      const c=layer.getBounds().getCenter();
+      const col=s.n?'#ffffff':'#8a8a7a';
+      LABELS.addLayer(L.marker(c,{interactive:false,icon:L.divIcon({className:'',iconSize:[0,0],
+        html:`<div style="font:600 11.5px Kanit;color:${col};text-align:center;transform:translate(-50%,-50%);white-space:nowrap;text-shadow:0 1px 2px rgba(0,0,0,.55)">${d}<br><span style="font-size:13px">${s.n?s.pct+'%':'—'}</span></div>`})}));
+    }
+  }).addTo(MAP);
+}
+
+// แผงรายละเอียดเมื่อคลิกอำเภอ (ปลอดภัยตาม PDPA: ไม่โชว์ชื่อเรื่อง)
+function openDistrictDetail(district,rows){
+  const list=rows.filter(r=>r.district===district);
+  const box=document.getElementById('mapDetail');
+  const stats=districtStats(rows)[district]||{n:0,pct:0,land:0,forest:0};
+  let html=`<div class="md-head"><div><div class="md-name">${district}</div>`+
+    `<div class="md-sub">${stats.n} เรื่อง · ที่ดินสาธารณะ ${stats.land} · ป่าไม้ ${stats.forest} · ความคืบหน้า ${stats.pct}%</div></div>`+
+    `<button class="md-close" onclick="document.getElementById('mapDetail').classList.remove('show')">✕</button></div>`;
+  if(!list.length){
+    html+=`<div class="md-empty">ยังไม่มีข้อมูลเรื่อง/คดีในอำเภอนี้</div>`;
+  }else{
+    html+=`<div class="md-list">`+list.map(r=>`
+      <div class="md-item">
+        <div class="md-item-top">
+          <span class="type-pill ${r.type==='พื้นที่ป่าไม้'?'tp-forest':'tp-land'}">${r.type}</span>
+          <span class="st-pill ${STATUS_CLASS[r.status]||''}">${r.status}</span>
+        </div>
+        <div class="md-org">${r.responsibleOrg?('หน่วยงาน: '+esc(r.responsibleOrg)):''}</div>
+        <div class="md-metrics">${metricChips(r)}</div>
+      </div>`).join('')+`</div>`;
+    html+=`<div class="md-note">* รายละเอียดเรื่องเชิงลึกดูได้ในระบบกรอกข้อมูล (เจ้าหน้าที่) ตามหลัก PDPA</div>`;
+  }
+  box.innerHTML=html;
+  box.classList.add('show');
+}
+function metricChips(r){
+  const chips=[];
+  if(r.type==='พื้นที่ป่าไม้'){
+    if(r.patrolTarget||r.patrolActual)chips.push(`ลาดตระเวน ${r.patrolActual}/${r.patrolTarget} ครั้ง`);
+    if(r.caseBacklog)chips.push(`คดีค้าง ${r.caseBacklog} คดี`);
+  }else{
+    if(r.resolvedPercent)chips.push(`ดำเนินการ ${r.resolvedPercent}%`);
+  }
+  return chips.map(c=>`<span class="md-chip">${c}</span>`).join('');
 }
 
 /* ---- charts ---- */
