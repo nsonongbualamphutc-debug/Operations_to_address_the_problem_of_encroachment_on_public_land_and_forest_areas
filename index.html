@@ -359,19 +359,6 @@ footer{text-align:center;padding:30px 20px;color:var(--ink-3);font-size:12.5px;f
     </div>
   </div>
 
-  <div class="grid g-1-1">
-    <div class="panel reveal">
-      <div class="panel-h"><div><h3>จำนวนเรื่องแยกตามอำเภอและประเภท</h3>
-        <div class="desc">ที่ดินสาธารณประโยชน์ · พื้นที่ป่าไม้</div></div></div>
-      <div class="chart-box tall"><canvas id="cDistrict"></canvas></div>
-    </div>
-    <div class="panel reveal">
-      <div class="panel-h"><div><h3>สัดส่วนตามประเภทและสถานะ</h3>
-        <div class="desc">โครงสร้างของเรื่อง/คดีทั้งหมด</div></div></div>
-      <div class="chart-box tall"><canvas id="cStatus"></canvas></div>
-    </div>
-  </div>
-
   <!-- ===== 3. สถานะ ===== -->
   <div class="sec-head reveal"><span class="no">3</span><h2>สรุปสถานะการดำเนินการ</h2><span class="line"></span></div>
   <div class="status-strip reveal" id="statusStrip"></div>
@@ -492,8 +479,6 @@ function render(){
   safe(()=>gauges(rows),'gauges');
   safe(()=>drawMap(rows),'map');
   if(window.Chart){
-    safe(()=>chartDistrict(rows),'chartDistrict');
-    safe(()=>chartStatus(rows),'chartStatus');
     safe(()=>chartForest(),'chartForest');
   }
 }
@@ -689,24 +674,6 @@ function metricChips(r){
 /* ---- charts ---- */
 function kill(k){if(charts[k]){charts[k].destroy();delete charts[k];}}
 if(window.Chart)Chart.defaults.font.family="'IBM Plex Sans Thai','Sarabun',sans-serif";
-
-function chartDistrict(rows){kill('d');const D=Object.keys(DISTRICT_COORDS);
-  const land=D.map(d=>rows.filter(r=>r.district===d&&r.type==='ที่ดินสาธารณประโยชน์').length);
-  const forest=D.map(d=>rows.filter(r=>r.district===d&&r.type==='พื้นที่ป่าไม้').length);
-  charts.d=new Chart(document.getElementById('cDistrict'),{type:'bar',
-    data:{labels:D,datasets:[
-      {label:'ที่ดินสาธารณประโยชน์',data:land,backgroundColor:'#9a6a34',borderRadius:7,stack:'s',maxBarThickness:40},
-      {label:'พื้นที่ป่าไม้',data:forest,backgroundColor:'#2f8a5e',borderRadius:7,stack:'s',maxBarThickness:40}]},
-    options:{responsive:true,maintainAspectRatio:false,
-      plugins:{legend:{position:'bottom',labels:{boxWidth:12,padding:16,font:{size:12}}}},
-      scales:{x:{grid:{display:false},ticks:{font:{size:11.5}}},y:{beginAtZero:true,ticks:{stepSize:1},grid:{color:'#f0ebdd'}}}}});}
-
-function chartStatus(rows){kill('s');
-  const counts=STATUS_ORDER.map(s=>rows.filter(r=>r.status===s).length);
-  charts.s=new Chart(document.getElementById('cStatus'),{type:'doughnut',
-    data:{labels:STATUS_ORDER,datasets:[{data:counts,backgroundColor:STATUS_ORDER.map(s=>STATUS_COLOR[s]),borderWidth:3,borderColor:'#fff',hoverOffset:8}]},
-    options:{responsive:true,maintainAspectRatio:false,cutout:'64%',
-      plugins:{legend:{position:'bottom',labels:{boxWidth:12,padding:12,font:{size:11.5}}}}}});}
 
 function chartForest(){kill('f');const ys=FOREST.slice().sort((a,b)=>a.year-b.year);
   charts.f=new Chart(document.getElementById('cForest'),{type:'bar',
