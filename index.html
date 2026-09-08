@@ -170,6 +170,10 @@ main{max-width:1360px;margin:0 auto;padding:8px clamp(14px,3vw,40px) 60px;}
 .md-item-top{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:5px;}
 .md-org{font-size:12px;color:var(--ink-2);font-family:'Sarabun';}
 .md-metrics{display:flex;gap:5px;flex-wrap:wrap;margin-top:5px;}
+.md-proc{margin-top:6px;border-top:1px dashed var(--line);padding-top:6px;display:flex;flex-direction:column;gap:3px;}
+.md-proc-row{display:flex;gap:8px;font-size:11.5px;font-family:'Sarabun';}
+.md-proc-k{flex-shrink:0;color:var(--f-700);font-weight:600;min-width:64px;}
+.md-proc-v{color:var(--ink-2);}
 .md-chip{font-size:11px;font-family:'Sarabun';background:var(--f-100);color:var(--f-700);padding:2px 8px;border-radius:99px;}
 .md-empty{font-size:13px;color:var(--ink-3);font-family:'Sarabun';padding:16px 4px;text-align:center;}
 .md-note{font-size:10.5px;color:var(--ink-3);font-family:'Sarabun';margin-top:10px;line-height:1.4;}
@@ -180,6 +184,9 @@ main{max-width:1360px;margin:0 auto;padding:8px clamp(14px,3vw,40px) 60px;}
 .st-court{background:#fbe2db;color:#a13c26;} .st-order{background:#efe1fb;color:#6a2fa1;} .st-done{background:#dcf1e2;color:#1f7a3d;}
 @media(max-width:560px){.map-detail{width:calc(100% - 20px);}}
 .map-legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:12px;font-size:12px;color:var(--ink-2);font-family:'Sarabun';}
+.nbl-tip{background:#fff !important;border:1px solid var(--line) !important;border-radius:12px !important;
+  box-shadow:0 12px 30px -12px rgba(8,32,26,.4) !important;padding:11px 13px !important;}
+.nbl-tip::before{border-top-color:#fff !important;}
 .dot{width:11px;height:11px;border-radius:50%;display:inline-block;margin-right:6px;vertical-align:middle;}
 
 .chart-box{position:relative;height:290px;}
@@ -613,14 +620,29 @@ function drawMap(rows){
       return {fillColor:choroColor(s.pct,s.n>0),fillOpacity:.82,color:'#ffffff',weight:1.6};
     },
     onEachFeature:function(f,layer){
-      const d=f.properties.amp_th;const s=stats[d]||{n:0,pct:0,land:0,forest:0};
+      const d=f.properties.amp_th;const s=stats[d]||{n:0,pct:0,land:0,forest:0,byStatus:{}};
+      const dash=v=>(v||v===0)?v:'-';
+      let statusRows='';
+      if(s.n){
+        statusRows=STATUS_ORDER.filter(st=>s.byStatus[st]).map(st=>
+          `<div style="display:flex;justify-content:space-between;gap:14px;font:11.5px Sarabun;color:#444">
+             <span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${STATUS_COLOR[st]};margin-right:5px"></span>${st}</span><b>${s.byStatus[st]}</b></div>`).join('');
+      }
       layer.bindTooltip(
-        `<div style="font:600 13px Kanit;color:#0d2b22">${d}</div>`+
-        `<div style="font:12px Sarabun;color:#333">เรื่องที่ติดตาม: <b>${s.n}</b></div>`+
-        `<div style="font:12px Sarabun;color:#333">ที่ดินสาธารณะ ${s.land} · ป่าไม้ ${s.forest}</div>`+
-        `<div style="font:12px Sarabun;color:#333">ความคืบหน้า: <b>${s.pct}%</b></div>`+
-        `<div style="font:11px Sarabun;color:#888;margin-top:3px">คลิกเพื่อดูรายละเอียด</div>`,
-        {sticky:true});
+        `<div style="min-width:190px">`+
+        `<div style="font:600 14px Kanit;color:#0d2b22;border-bottom:1px solid #e6dfcd;padding-bottom:4px;margin-bottom:5px">${d}</div>`+
+        (s.n
+          ? `<div style="font:12px Sarabun;color:#333;display:flex;justify-content:space-between"><span>เรื่องที่ติดตาม</span><b>${s.n}</b></div>`+
+            `<div style="font:12px Sarabun;color:#333;display:flex;justify-content:space-between"><span>ที่ดินสาธารณะ · ป่าไม้</span><b>${s.land} · ${s.forest}</b></div>`+
+            `<div style="font:12px Sarabun;color:#333;display:flex;justify-content:space-between"><span>ความคืบหน้า</span><b style="color:${choroColor(s.pct,true)}">${s.pct}%</b></div>`+
+            `<div style="border-top:1px dashed #e6dfcd;margin:5px 0 4px;padding-top:4px;font:11px Kanit;color:#888">แยกตามสถานะ</div>`+
+            statusRows
+          : `<div style="font:12px Sarabun;color:#999">เรื่องที่ติดตาม : -</div>`+
+            `<div style="font:12px Sarabun;color:#999">ความคืบหน้า : -</div>`+
+            `<div style="font:11.5px Sarabun;color:#b08">ยังไม่มีข้อมูลในอำเภอนี้</div>`)+
+        `<div style="font:11px Sarabun;color:#2f8a5e;margin-top:5px">▸ คลิกเพื่อดูรายละเอียด</div>`+
+        `</div>`,
+        {sticky:true,className:'nbl-tip'});
       layer.on({
         mouseover:e=>{e.target.setStyle({weight:3,color:'#0d2b22',fillOpacity:.92});e.target.bringToFront();},
         mouseout:e=>{GEOLAYER.resetStyle(e.target);},
@@ -652,13 +674,20 @@ function openDistrictDetail(district,rows){
           <span class="type-pill ${r.type==='พื้นที่ป่าไม้'?'tp-forest':'tp-land'}">${r.type}</span>
           <span class="st-pill ${STATUS_CLASS[r.status]||''}">${r.status}</span>
         </div>
-        <div class="md-org">${r.responsibleOrg?('หน่วยงาน: '+esc(r.responsibleOrg)):''}</div>
+        <div class="md-org">${r.responsibleOrg?('หน่วยงานหลัก: '+esc(r.responsibleOrg)):''}</div>
+        ${orgProcessRows(r)}
         <div class="md-metrics">${metricChips(r)}</div>
       </div>`).join('')+`</div>`;
     html+=`<div class="md-note">* รายละเอียดเรื่องเชิงลึกดูได้ในระบบกรอกข้อมูล (เจ้าหน้าที่) ตามหลัก PDPA</div>`;
   }
   box.innerHTML=html;
   box.classList.add('show');
+}
+function orgProcessRows(r){
+  const items=[['ป้องกันป่า',r.orgPrevent],['เร่งรัดคดี',r.orgLegal],['จัดการที่ดิน',r.orgLand]]
+    .filter(x=>x[1]&&String(x[1]).trim());
+  if(!items.length)return '';
+  return `<div class="md-proc">`+items.map(x=>`<div class="md-proc-row"><span class="md-proc-k">${x[0]}</span><span class="md-proc-v">${esc(x[1])}</span></div>`).join('')+`</div>`;
 }
 function metricChips(r){
   const chips=[];

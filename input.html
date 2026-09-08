@@ -333,6 +333,11 @@ table.list tbody tr:hover{background:var(--f-100);}
         <div class="field"><label>ร้อยละดำเนินการ (ที่ดินสาธารณะ)</label><input id="f_resolvedPercent" type="number" value="0"></div>
         <div class="field"><label>ผู้บันทึก</label><input id="f_user" placeholder="ชื่อ/หน่วยงาน"></div>
       </div>
+
+      <div class="section-lbl">หน่วยงานรับผิดชอบแต่ละกระบวนการ</div>
+      <div class="field"><label>1. ป้องกันการบุกรุกทำลายป่า</label><input id="f_orgPrevent" placeholder="เช่น ศูนย์ป่าไม้ / อปท. / เครือข่ายราษฎร"></div>
+      <div class="field"><label>2. เร่งรัดการดำเนินคดี</label><input id="f_orgLegal" placeholder="เช่น ตำรวจภูธร / อัยการ / ที่ทำการปกครอง"></div>
+      <div class="field"><label>3. จัดการปัญหาที่ดินสู่ขั้นตอนสุดท้าย</label><input id="f_orgLand" placeholder="เช่น สำนักงานที่ดิน / ธนารักษ์ / อปท."></div>
     </div>
     <div class="drawer-foot">
       <button class="tb-btn btn-primary" onclick="saveEntry()">💾 บันทึก</button>
@@ -402,13 +407,14 @@ function openDrawer(id){
     set('f_id',r.id);set('f_caseTitle',r.caseTitle);set('f_actionTaken',r.actionTaken);
     set('f_fiscalYear',r.fiscalYear);set('f_district',r.district);set('f_type',r.type);
     set('f_status',r.status);set('f_responsibleOrg',r.responsibleOrg);
+    set('f_orgPrevent',r.orgPrevent);set('f_orgLegal',r.orgLegal);set('f_orgLand',r.orgLand);
     set('f_patrolTarget',r.patrolTarget);set('f_patrolActual',r.patrolActual);
     set('f_caseBacklog',r.caseBacklog);set('f_resolvedPercent',r.resolvedPercent);set('f_user',r.updatedBy||'');
   }else{
     document.getElementById('drawerEyebrow').textContent='สร้างรายการใหม่';
     document.getElementById('drawerTitle').textContent='เพิ่มรายการใหม่';
     document.getElementById('delBtn').style.display='none';
-    ['f_id','f_caseTitle','f_actionTaken','f_responsibleOrg','f_user'].forEach(x=>set(x,''));
+    ['f_id','f_caseTitle','f_actionTaken','f_responsibleOrg','f_user','f_orgPrevent','f_orgLegal','f_orgLand'].forEach(x=>set(x,''));
     set('f_fiscalYear',2569);set('f_district','เมืองหนองบัวลำภู');set('f_type','ที่ดินสาธารณประโยชน์');
     set('f_status','อยู่ระหว่างดำเนินการ');['f_patrolTarget','f_patrolActual','f_caseBacklog','f_resolvedPercent'].forEach(x=>set(x,0));
   }
@@ -421,7 +427,8 @@ function get(id){return document.getElementById(id).value;}
 async function saveEntry(){
   const p={action:'save',pin:PIN,id:get('f_id'),fiscalYear:get('f_fiscalYear'),district:get('f_district'),
     type:get('f_type'),caseTitle:get('f_caseTitle'),actionTaken:get('f_actionTaken'),status:get('f_status'),
-    responsibleOrg:get('f_responsibleOrg'),patrolTarget:get('f_patrolTarget'),patrolActual:get('f_patrolActual'),
+    responsibleOrg:get('f_responsibleOrg'),orgPrevent:get('f_orgPrevent'),orgLegal:get('f_orgLegal'),orgLand:get('f_orgLand'),
+    patrolTarget:get('f_patrolTarget'),patrolActual:get('f_patrolActual'),
     caseBacklog:get('f_caseBacklog'),resolvedPercent:get('f_resolvedPercent'),user:get('f_user')};
   const r=await jsonp(p);
   if(r.ok){toast('บันทึกสำเร็จ');closeDrawer();loadAll();}else toast(r.error||'บันทึกไม่สำเร็จ',true);
@@ -485,12 +492,12 @@ async function doImport(){
 function cancelImport(){IMPORT=[];document.getElementById('preview').style.display='none';document.getElementById('importBtns').style.display='none';document.getElementById('importProgress').style.display='none';document.getElementById('file').value='';}
 
 /* ---- EXPORT ---- */
-function exportData(){const cols=['id','fiscalYear','district','type','caseTitle','actionTaken','status','patrolTarget','patrolActual','caseBacklog','resolvedPercent','responsibleOrg','updatedAt','updatedBy'];
+function exportData(){const cols=['id','fiscalYear','district','type','caseTitle','actionTaken','status','patrolTarget','patrolActual','caseBacklog','resolvedPercent','responsibleOrg','orgPrevent','orgLegal','orgLand','updatedAt','updatedBy'];
   const data=ALL.map(r=>{const o={};cols.forEach(c=>o[c]=r[c]);return o;});
   const ws=XLSX.utils.json_to_sheet(data,{header:cols});const wb=XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb,ws,'EncroachmentData');
   XLSX.writeFile(wb,`บุกรุกที่ดินป่าไม้_หนองบัวลำภู_${new Date().toISOString().slice(0,10)}.xlsx`);}
-function exportTemplate(){const cols=['id','fiscalYear','district','type','caseTitle','actionTaken','status','patrolTarget','patrolActual','caseBacklog','resolvedPercent','responsibleOrg'];
+function exportTemplate(){const cols=['id','fiscalYear','district','type','caseTitle','actionTaken','status','patrolTarget','patrolActual','caseBacklog','resolvedPercent','responsibleOrg','orgPrevent','orgLegal','orgLand'];
   const ex=[{id:'',fiscalYear:2569,district:'เมืองหนองบัวลำภู',type:'ที่ดินสาธารณประโยชน์',caseTitle:'ตัวอย่าง: บุกรุกที่สาธารณะ ต.___ ม.__',actionTaken:'ตัวอย่าง: อยู่ระหว่างตรวจสอบ',status:'อยู่ระหว่างดำเนินการ',patrolTarget:0,patrolActual:0,caseBacklog:0,resolvedPercent:0,responsibleOrg:'อบต./เทศบาล ___'}];
   const ws=XLSX.utils.json_to_sheet(ex,{header:cols});const wb=XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb,ws,'Template');XLSX.writeFile(wb,'แม่แบบนำเข้าข้อมูล.xlsx');}
